@@ -8,11 +8,12 @@ export default defineEventHandler(async () => {
   const [modeSetting] = await db.select().from(settings).where(eq(settings.key, "sidebar_mode"))
   const mode = modeSetting?.value === "manual" ? "manual" : "auto"
 
-  if (mode === "manual") {
-    const [treeSetting] = await db.select().from(settings).where(eq(settings.key, "sidebar_tree"))
-    return { mode, tree: (treeSetting?.value as TreeNode[] | undefined) ?? [] }
-  }
+  const [treeSetting] = await db.select().from(settings).where(eq(settings.key, "sidebar_tree"))
+  const manualTree = (treeSetting?.value as TreeNode[] | undefined) ?? []
+
+  if (mode === "manual")
+    return { mode, tree: manualTree, manualTree }
 
   const rows = await db.select({ path: pages.path, title: pages.title }).from(pages)
-  return { mode, tree: buildPageTree(rows) }
+  return { mode, tree: buildPageTree(rows), manualTree }
 })
