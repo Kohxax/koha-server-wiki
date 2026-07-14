@@ -32,6 +32,7 @@ async function save() {
     })
     savedTitle.value = title.value
     savedContent.value = content.value
+    clearNuxtData(`page:${path.value}`)
     await navigateTo(path.value === "home" ? "/" : `/wiki/${path.value}`)
   } catch {
     errorMessage.value = "保存に失敗しました"
