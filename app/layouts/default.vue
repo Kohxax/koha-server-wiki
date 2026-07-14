@@ -1,8 +1,14 @@
 <script setup lang="ts">
 const colorMode = useColorMode()
+const { loggedIn, user, clear } = useUserSession()
 
 function toggleColorMode() {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+}
+
+async function logout() {
+  await clear()
+  await navigateTo('/')
 }
 </script>
 
@@ -17,9 +23,30 @@ function toggleColorMode() {
         <span v-if="colorMode.value === 'dark'">🌙</span>
         <span v-else>☀️</span>
       </UiButton>
-      <UiAvatar>
-        <UiAvatarFallback>?</UiAvatarFallback>
-      </UiAvatar>
+      <NuxtLink v-if="!loggedIn" to="/login">
+        <UiButton variant="outline" size="sm">
+          ログイン
+        </UiButton>
+      </NuxtLink>
+      <UiDropdownMenu v-else>
+        <UiDropdownMenuTrigger as-child>
+          <button type="button" class="flex items-center gap-2" aria-label="ユーザーメニュー">
+            <UiAvatar>
+              <UiAvatarImage v-if="user?.avatarUrl" :src="user.avatarUrl" :alt="user?.username" />
+              <UiAvatarFallback>{{ user?.username?.slice(0, 1).toUpperCase() }}</UiAvatarFallback>
+            </UiAvatar>
+          </button>
+        </UiDropdownMenuTrigger>
+        <UiDropdownMenuContent align="end">
+          <UiDropdownMenuLabel>
+            {{ user?.username }} ({{ user?.role }})
+          </UiDropdownMenuLabel>
+          <UiDropdownMenuSeparator />
+          <UiDropdownMenuItem @click="logout">
+            ログアウト
+          </UiDropdownMenuItem>
+        </UiDropdownMenuContent>
+      </UiDropdownMenu>
     </header>
     <div class="flex flex-1">
       <aside class="hidden w-64 shrink-0 border-r md:block">

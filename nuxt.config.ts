@@ -6,7 +6,12 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  modules: ['shadcn-nuxt', '@nuxt/fonts', '@nuxtjs/color-mode'],
+  modules: ['shadcn-nuxt', '@nuxt/fonts', '@nuxtjs/color-mode', 'nuxt-auth-utils'],
+  runtimeConfig: {
+    public: {
+      devAuthBypass: !!process.env.NUXT_DEV_AUTH_BYPASS,
+    },
+  },
   shadcn: {
     /**
      * Prefix for all the imported component.

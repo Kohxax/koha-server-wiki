@@ -26,6 +26,7 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
     "nuxt": "^4.0.0",
+    "nuxt-auth-utils": "^0.5.29",
     "postgres": "^3.4.9",
     "reka-ui": "^2.10.1",
     "shadcn-vue": "^2.7.4",
@@ -36,7 +37,9 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@nuxt/test-utils": "^4.0.3",
     "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^26.1.1",
     "drizzle-kit": "^0.31.10",
     "shadcn-nuxt": "^2.5.1",
     "tailwindcss": "^4.0.0",
