@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { SearchIcon } from '@lucide/vue'
+import { PlusIcon, SearchIcon } from '@lucide/vue'
 
 const colorMode = useColorMode()
 const { loggedIn, user, clear } = useUserSession()
+
+const canEdit = computed(() => user.value?.role === 'editor' || user.value?.role === 'admin')
 
 function toggleColorMode() {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
@@ -41,6 +43,12 @@ function submitSearch() {
           />
         </div>
       </div>
+      <NuxtLink v-if="canEdit" to="/new">
+        <UiButton variant="outline" size="sm">
+          <PlusIcon />
+          新規作成
+        </UiButton>
+      </NuxtLink>
       <UiButton variant="ghost" size="icon" aria-label="テーマ切替" @click="toggleColorMode">
         <span v-if="colorMode.value === 'dark'">🌙</span>
         <span v-else>☀️</span>
