@@ -6,7 +6,7 @@ test("homepage loads and dark mode toggle works", async ({ page }) => {
 
   const html = page.locator("html")
   const before = await html.getAttribute("class")
-  await page.getByRole("button", { name: "テーマ切替" }).click()
+  await page.getByRole("switch", { name: "テーマ切替" }).click()
   await expect
     .poll(async () => html.getAttribute("class"))
     .not.toBe(before)
