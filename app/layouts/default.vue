@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { PlusIcon, SearchIcon } from '@lucide/vue'
+import { PlusIcon, SearchIcon, SettingsIcon } from '@lucide/vue'
 
 const colorMode = useColorMode()
 const { loggedIn, user, clear } = useUserSession()
 
 const canEdit = computed(() => user.value?.role === 'editor' || user.value?.role === 'admin')
+const isAdmin = computed(() => user.value?.role === 'admin')
 
 function toggleColorMode() {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
@@ -49,6 +50,30 @@ function submitSearch() {
           新規作成
         </UiButton>
       </NuxtLink>
+      <UiDropdownMenu v-if="canEdit">
+        <UiDropdownMenuTrigger as-child>
+          <UiButton variant="ghost" size="icon" aria-label="管理メニュー">
+            <SettingsIcon />
+          </UiButton>
+        </UiDropdownMenuTrigger>
+        <UiDropdownMenuContent align="end">
+          <UiDropdownMenuItem as-child>
+            <NuxtLink to="/admin/sidebar">
+              サイドバー設定
+            </NuxtLink>
+          </UiDropdownMenuItem>
+          <UiDropdownMenuItem as-child>
+            <NuxtLink to="/admin/media">
+              メディア管理
+            </NuxtLink>
+          </UiDropdownMenuItem>
+          <UiDropdownMenuItem v-if="isAdmin" as-child>
+            <NuxtLink to="/admin/users">
+              ユーザー管理
+            </NuxtLink>
+          </UiDropdownMenuItem>
+        </UiDropdownMenuContent>
+      </UiDropdownMenu>
       <UiButton variant="ghost" size="icon" aria-label="テーマ切替" @click="toggleColorMode">
         <span v-if="colorMode.value === 'dark'">🌙</span>
         <span v-else>☀️</span>
