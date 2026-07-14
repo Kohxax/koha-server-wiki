@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { SearchIcon } from '@lucide/vue'
+
 const colorMode = useColorMode()
 const { loggedIn, user, clear } = useUserSession()
 
@@ -24,10 +26,21 @@ function submitSearch() {
 <template>
   <div class="flex min-h-screen flex-col">
     <header class="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4">
-      <NuxtLink to="/" class="font-semibold">
+      <NuxtLink to="/" class="shrink-0 font-semibold">
         こは鯖wiki
       </NuxtLink>
-      <div class="flex-1" />
+      <div class="flex flex-1 justify-center px-4">
+        <div class="relative w-full max-w-md">
+          <SearchIcon class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <UiInput
+            v-model="searchQuery"
+            type="search"
+            placeholder="検索..."
+            class="pl-8"
+            @keyup.enter="submitSearch"
+          />
+        </div>
+      </div>
       <UiButton variant="ghost" size="icon" aria-label="テーマ切替" @click="toggleColorMode">
         <span v-if="colorMode.value === 'dark'">🌙</span>
         <span v-else>☀️</span>
@@ -60,13 +73,6 @@ function submitSearch() {
     <div class="flex flex-1">
       <aside class="hidden w-64 shrink-0 border-r md:block">
         <UiScrollArea class="h-[calc(100vh-3.5rem)] p-4">
-          <UiInput
-            v-model="searchQuery"
-            type="search"
-            placeholder="検索..."
-            class="mb-4"
-            @keyup.enter="submitSearch"
-          />
           <SidebarTree v-if="sidebar?.tree.length" :nodes="sidebar.tree" />
           <p v-else class="text-sm text-muted-foreground">
             ページがまだありません
