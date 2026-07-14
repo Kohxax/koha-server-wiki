@@ -33,6 +33,10 @@ describe("isSafeSvg", () => {
   it("rejects svg with javascript: href", () => {
     expect(isSafeSvg("<svg><a xlink:href=\"javascript:alert(1)\">x</a></svg>")).toBe(false)
   })
+
+  it("accepts draw.io's embedded content attribute (regression: must not match 'on' inside 'content=')", () => {
+    expect(isSafeSvg("<svg width=\"100\" height=\"100\" content=\"&lt;mxfile&gt;v1&lt;/mxfile&gt;\"><rect/></svg>")).toBe(true)
+  })
 })
 
 describe("extToMime", () => {

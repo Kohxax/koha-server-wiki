@@ -47,6 +47,21 @@ function selectItem(item: Media) {
   emit("insert", `![${item.originalName}](/uploads/${item.filename})`)
   open.value = false
 }
+
+const drawioDialogOpen = ref(false)
+const editingMediaId = ref<number | undefined>(undefined)
+const editingXml = ref("")
+
+async function editDiagram(item: Media) {
+  editingXml.value = await $fetch<string>(`/uploads/${item.filename}`, { responseType: "text" })
+  editingMediaId.value = item.id
+  drawioDialogOpen.value = true
+}
+
+function onDiagramInsert(markdown: string) {
+  emit("insert", markdown)
+  open.value = false
+}
 </script>
 
 <template>
@@ -80,21 +95,42 @@ function selectItem(item: Media) {
 
       <UiScrollArea class="h-72">
         <div class="grid grid-cols-3 gap-2 p-1 sm:grid-cols-4">
-          <button
+          <div
             v-for="item in items"
             :key="item.id"
-            type="button"
-            class="group relative aspect-square overflow-hidden rounded-md border hover:ring-2 hover:ring-ring"
-            :title="item.originalName"
-            @click="selectItem(item)"
+            class="group relative aspect-square overflow-hidden rounded-md border"
           >
-            <img :src="`/uploads/${item.filename}`" :alt="item.originalName" class="h-full w-full object-cover">
-          </button>
+            <button
+              type="button"
+              class="h-full w-full hover:ring-2 hover:ring-ring"
+              :title="item.originalName"
+              @click="selectItem(item)"
+            >
+              <img :src="`/uploads/${item.filename}`" :alt="item.originalName" class="h-full w-full object-cover">
+            </button>
+            <UiButton
+              v-if="item.kind === 'diagram'"
+              type="button"
+              size="sm"
+              variant="secondary"
+              class="absolute bottom-1 left-1 right-1 opacity-0 group-hover:opacity-100"
+              @click.stop="editDiagram(item)"
+            >
+              draw.ioで編集
+            </UiButton>
+          </div>
         </div>
         <p v-if="items && items.length === 0" class="p-4 text-center text-sm text-muted-foreground">
           まだ画像がありません
         </p>
       </UiScrollArea>
     </UiDialogContent>
+
+    <DrawioDialog
+      v-model:open="drawioDialogOpen"
+      :initial-xml="editingXml"
+      :editing-media-id="editingMediaId"
+      @insert="onDiagramInsert"
+    />
   </UiDialog>
 </template>

@@ -14,3 +14,6 @@
 - アップロード先ディレクトリは環境変数`UPLOAD_DIR`(省略時`./uploads`)で指定する方式にした。本番はdocker composeのボリューム`/data/uploads`をこの変数で指定する想定(phase10で設定)。
 - `media.kind`は基本的に`POST /api/media`ではアップロードされたファイルの種別に関わらず既定で`image`。`diagram`(draw.io由来のSVG)はフォームフィールド`kind=diagram`を明示的に送った場合のみ設定される。draw.io統合(phase7)はこの`kind`フィールドを使って区別する想定。
 - SVGの安全性チェックは`<script>`・`on*`イベント属性・`javascript:` href・`<foreignObject>`を正規表現で拒否する簡易サニタイズに留めた(draw.io出力を通す最小限の対策として要件通り)。
+- draw.io連携の再編集時、SVGに埋め込まれたmxfile XMLを自前でパース/デコードせず、SVGファイルの生テキストをそのまま`load`アクションの`xml`にpostMessageする方式にした。draw.ioのembed APIはSVG全体(埋め込みXML付き)を渡してもそこから図を復元できるため、これが最もシンプル。
+- draw.ioの保存postMessageプロトコル自体はブラウザのpostMessageに依存しVueコンポーネントに密結合するため、`shared/utils/drawio.ts`にプロトコルのメッセージ組み立て/パース処理を純粋関数として切り出し、vitestで直接ユニットテストできるようにした(コンポーネントマウントによるE2E風テストは要らない)。
+- (バグ修正) SVGサニタイズの正規表現`on\w+\s*=`が"content="のような無害な属性名の中間にマッチしてしまう不具合を発見(`\b`で単語境界を追加して修正)。draw.ioの埋め込みXML属性(`content="..."`)を含む正当なSVGが誤って拒否される実害があったため、回帰テストを追加した。

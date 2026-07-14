@@ -27,7 +27,7 @@ export function isAllowedMime(mime: string): boolean {
   return mime in ALLOWED_MIME_TO_EXT
 }
 
-const SVG_DANGEROUS_PATTERN = /<script|on\w+\s*=|xlink:href\s*=\s*["']?\s*javascript:|<foreignobject/i
+const SVG_DANGEROUS_PATTERN = /<script|\bon\w+\s*=|xlink:href\s*=\s*["']?\s*javascript:|<foreignobject/i
 
 export function isSafeSvg(content: string): boolean {
   return !SVG_DANGEROUS_PATTERN.test(content)

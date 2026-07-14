@@ -54,6 +54,7 @@ function insertCodeBlock() {
 }
 
 const mediaDialogOpen = ref(false)
+const drawioDialogOpen = ref(false)
 
 function insertMedia(markdown: string) {
   insertAtCursor(markdown)
@@ -77,6 +78,9 @@ function insertMedia(markdown: string) {
       </UiButton>
       <UiButton type="button" variant="ghost" size="sm" title="画像" @click="mediaDialogOpen = true">
         🖼️
+      </UiButton>
+      <UiButton type="button" variant="ghost" size="sm" title="図表" @click="drawioDialogOpen = true">
+        📐
       </UiButton>
       <div class="flex-1" />
       <div class="flex gap-1 md:hidden">
@@ -106,5 +110,6 @@ function insertMedia(markdown: string) {
     </div>
 
     <MediaLibraryDialog v-model:open="mediaDialogOpen" @insert="insertMedia" />
+    <DrawioDialog v-model:open="drawioDialogOpen" @insert="insertMedia" />
   </div>
 </template>
