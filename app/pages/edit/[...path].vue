@@ -15,8 +15,12 @@ const { data: existing } = await useFetch<Page>(() => `/api/pages/${path.value}`
 
 const title = ref(existing.value?.title ?? path.value.split("/").pop() ?? "")
 const content = ref(existing.value?.content ?? "")
+const savedTitle = ref(title.value)
+const savedContent = ref(content.value)
 const saving = ref(false)
 const errorMessage = ref("")
+
+const isDirty = computed(() => title.value !== savedTitle.value || content.value !== savedContent.value)
 
 async function save() {
   saving.value = true
@@ -26,6 +30,8 @@ async function save() {
       method: "PUT",
       body: { title: title.value, content: content.value },
     })
+    savedTitle.value = title.value
+    savedContent.value = content.value
     await navigateTo(path.value === "home" ? "/" : `/wiki/${path.value}`)
   } catch {
     errorMessage.value = "保存に失敗しました"
@@ -33,10 +39,23 @@ async function save() {
     saving.value = false
   }
 }
+
+onBeforeRouteLeave(() => {
+  if (isDirty.value && !confirm("保存されていない変更があります。ページを離れますか?"))
+    return false
+})
+
+function handleBeforeUnload(event: BeforeUnloadEvent) {
+  if (isDirty.value)
+    event.preventDefault()
+}
+
+onMounted(() => window.addEventListener("beforeunload", handleBeforeUnload))
+onBeforeUnmount(() => window.removeEventListener("beforeunload", handleBeforeUnload))
 </script>
 
 <template>
-  <div class="mx-auto flex max-w-3xl flex-col gap-4 py-6">
+  <div class="mx-auto flex max-w-4xl flex-col gap-4 py-6">
     <h1 class="text-xl font-semibold">
       {{ existing ? 'ページを編集' : 'ページを作成' }}: {{ path }}
     </h1>
@@ -45,13 +64,14 @@ async function save() {
       <UiInput id="edit-title" v-model="title" />
     </div>
     <div>
-      <label class="text-sm font-medium" for="edit-content">本文 (Markdown)</label>
-      <UiTextarea id="edit-content" v-model="content" rows="20" class="font-mono" />
+      <span class="text-sm font-medium">本文 (Markdown)</span>
+      <MarkdownEditor v-model="content" />
     </div>
     <p v-if="errorMessage" class="text-sm text-destructive">
       {{ errorMessage }}
     </p>
-    <div class="flex justify-end gap-2">
+    <div class="flex items-center justify-end gap-2">
+      <span v-if="isDirty" class="text-sm text-muted-foreground">未保存の変更があります</span>
       <UiButton :disabled="saving" @click="save">
         保存
       </UiButton>

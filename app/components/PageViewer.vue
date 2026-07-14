@@ -37,11 +37,18 @@ const notFound = computed(() => error.value?.statusCode === 404)
       <h1 class="text-2xl font-bold">
         {{ page.title }}
       </h1>
-      <UiButton v-if="canEdit" variant="outline" size="sm" as-child>
-        <NuxtLink :to="`/edit/${path}`">
-          編集
-        </NuxtLink>
-      </UiButton>
+      <div class="flex gap-2">
+        <UiButton variant="outline" size="sm" as-child>
+          <NuxtLink :to="`/history/${path}`">
+            履歴
+          </NuxtLink>
+        </UiButton>
+        <UiButton v-if="canEdit" variant="outline" size="sm" as-child>
+          <NuxtLink :to="`/edit/${path}`">
+            編集
+          </NuxtLink>
+        </UiButton>
+      </div>
     </div>
     <MDC :value="page.content" tag="div" />
   </article>

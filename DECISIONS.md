@@ -9,3 +9,5 @@
 - ページ編集/履歴ページは、PLAN.mdが許容する代替方式に倣い `/wiki/[...path]/edit` ではなく `/edit/[...path]`・`/history/[...path]` の形にした(catch-all配下に固定セグメントを続けるルーティングは避ける)。同じ理由でAPI側も `GET /api/pages/[...path]/revisions` ではなく独立した `GET /api/page-revisions/[...path]` にした。
 - Nuxtの型付き`$fetch`/`useFetch`は、`/api/pages/${path}`のようなテンプレートリテラルURLに対して、同じ`/api/pages/`配下にある無関係のリテラルルート(`tree.get.ts`)の返り値型を誤って推論することがあった。回避策として`useFetch<Page>(...)` / `$fetch<Page>(...)`のように明示的にジェネリクスを指定している。
 - サイドバー自動ツリー生成(`buildPageTree`)は、パスの各セグメントに対応する実ページが存在すればそのタイトルをラベルに、存在しない中間フォルダはセグメント名をそのままラベルにする方式にした。
+- Playwright (headless Chromium) もdockerと同様、システムライブラリのインストールに`sudo`が必要で自動化できなかった(QUESTIONS.md参照)。E2Eのコード・設定(`playwright.config.ts`、`e2e/`、dev-bypassでrole別`storageState`を作る`global.setup.ts`)は完成させ、実行検証は依存解消後に行う方針とした。それまではdevサーバー起動+curlによる手動検証でロジックの妥当性を確認している。
+- モバイル用の編集/プレビュー切替タブは`md:hidden`のボタンで表示/非表示を制御し、デスクトップでは常に2ペイン(textarea+プレビュー)を並べて表示する。Playwrightのデフォルト(デスクトップ)ビューポートではこのタブボタンは操作対象にしていない。

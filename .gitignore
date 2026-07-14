@@ -6,3 +6,6 @@ dist
 uploads/
 PLAN.md
 QUESTIONS.md
+test-results/
+playwright-report/
+e2e/.auth/
