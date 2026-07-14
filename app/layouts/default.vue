@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { PlusIcon, SearchIcon, SettingsIcon } from '@lucide/vue'
+import { MoonIcon, PlusIcon, SearchIcon, SettingsIcon, SunIcon } from '@lucide/vue'
 
 const colorMode = useColorMode()
 const { loggedIn, user, clear } = useUserSession()
 
+const isDark = computed({
+  get: () => colorMode.value === 'dark',
+  set: (value) => { colorMode.preference = value ? 'dark' : 'light' },
+})
+
 const canEdit = computed(() => user.value?.role === 'editor' || user.value?.role === 'admin')
 const isAdmin = computed(() => user.value?.role === 'admin')
-
-function toggleColorMode() {
-  colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
-}
 
 async function logout() {
   await clear()
@@ -74,10 +75,11 @@ function submitSearch() {
           </UiDropdownMenuItem>
         </UiDropdownMenuContent>
       </UiDropdownMenu>
-      <UiButton variant="ghost" size="icon" aria-label="テーマ切替" @click="toggleColorMode">
-        <span v-if="colorMode.value === 'dark'">🌙</span>
-        <span v-else>☀️</span>
-      </UiButton>
+      <div class="flex items-center gap-1.5">
+        <SunIcon class="size-4 text-muted-foreground" />
+        <UiSwitch v-model="isDark" aria-label="テーマ切替" />
+        <MoonIcon class="size-4 text-muted-foreground" />
+      </div>
       <NuxtLink v-if="!loggedIn" to="/login">
         <UiButton variant="outline" size="sm">
           ログイン
