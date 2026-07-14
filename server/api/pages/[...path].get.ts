@@ -1,0 +1,17 @@
+import { eq } from "drizzle-orm"
+import { useDb } from "../../database/client"
+import { pages } from "../../database/schema"
+
+export default defineEventHandler(async (event) => {
+  const raw = getRouterParam(event, "path") ?? ""
+  const path = normalizePagePath(raw)
+  if (!isValidPagePath(path))
+    throw createError({ statusCode: 400, statusMessage: "Invalid page path" })
+
+  const db = useDb()
+  const [page] = await db.select().from(pages).where(eq(pages.path, path))
+  if (!page)
+    throw createError({ statusCode: 404, statusMessage: "Page not found" })
+
+  return page
+})

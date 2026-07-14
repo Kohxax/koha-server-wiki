@@ -6,7 +6,7 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  modules: ['shadcn-nuxt', '@nuxt/fonts', '@nuxtjs/color-mode', 'nuxt-auth-utils'],
+  modules: ['shadcn-nuxt', '@nuxt/fonts', '@nuxtjs/color-mode', 'nuxt-auth-utils', '@nuxtjs/mdc'],
   runtimeConfig: {
     public: {
       devAuthBypass: !!process.env.NUXT_DEV_AUTH_BYPASS,

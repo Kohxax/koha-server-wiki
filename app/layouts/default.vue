@@ -10,6 +10,8 @@ async function logout() {
   await clear()
   await navigateTo('/')
 }
+
+const { data: sidebar } = await useFetch('/api/sidebar', { key: 'sidebar' })
 </script>
 
 <template>
@@ -51,7 +53,10 @@ async function logout() {
     <div class="flex flex-1">
       <aside class="hidden w-64 shrink-0 border-r md:block">
         <UiScrollArea class="h-[calc(100vh-3.5rem)] p-4">
-          <p class="text-sm text-muted-foreground">サイドバー(準備中)</p>
+          <SidebarTree v-if="sidebar?.tree.length" :nodes="sidebar.tree" />
+          <p v-else class="text-sm text-muted-foreground">
+            ページがまだありません
+          </p>
         </UiScrollArea>
       </aside>
       <main class="min-w-0 flex-1 p-6">
