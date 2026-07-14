@@ -1,4 +1,24 @@
 services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NUXT_SESSION_PASSWORD: ${NUXT_SESSION_PASSWORD}
+      NUXT_OAUTH_DISCORD_CLIENT_ID: ${NUXT_OAUTH_DISCORD_CLIENT_ID}
+      NUXT_OAUTH_DISCORD_CLIENT_SECRET: ${NUXT_OAUTH_DISCORD_CLIENT_SECRET}
+      NUXT_ADMIN_DISCORD_IDS: ${NUXT_ADMIN_DISCORD_IDS}
+      DATABASE_URL: postgres://${POSTGRES_USER:-koha}:${POSTGRES_PASSWORD:-koha}@db:5432/${POSTGRES_DB:-koha_wiki}
+      UPLOAD_DIR: /data/uploads
+      # NUXT_DEV_AUTH_BYPASS is intentionally never referenced here so it can never
+      # leak into the containerized production app, even if it's set in the local .env.
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
   db:
     image: postgres:17-alpine
     restart: unless-stopped
@@ -11,10 +31,21 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-koha}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-koha} -d ${POSTGRES_DB:-koha_wiki}"]
       interval: 5s
       timeout: 5s
       retries: 10
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN}
+    depends_on:
+      - app
+    profiles: [prod]
+
 volumes:
   pgdata: {}
+  uploads: {}

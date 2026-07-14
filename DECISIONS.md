@@ -21,3 +21,7 @@
 - サイドバー手動ツリー編集UIは、ネストしたTreeNode[]を直接ドラッグ操作するのではなく「フラットな行 + インデントレベル」のアウトライン形式(`shared/utils/sidebar-outline.ts`)で実装した。ページ内アウトラインエディタの標準的な実装パターンで、追加/削除/並べ替え/インデントをシンプルな配列操作に落とし込める。並べ替え・インデントは対象ノードのサブツリーをブロック単位で一緒に動かす。
 - `GET /api/sidebar`は表示モードに応じた`tree`に加えて、モードに関わらず常に永続化済みの手動ツリーを`manualTree`として返すようにした。管理画面のアウトラインエディタは常に`manualTree`から初期化することで、自動モード表示中でも手動ツリーの編集内容を失わない(「自動に切り替えても消えず、手動に戻せば復元される」という要件を満たすための必須の設計)。
 - `/admin/media`・`/admin/sidebar`はAPI権限(editor+)に合わせて`require-editor`ミドルウェア、`/admin/users`のみ`require-admin`にした。PLAN.mdのルーティング表で各画面の権限レベルが異なる(users=adminのみ、sidebar=editor+)と明記されているため、/admin配下を一律adminのみにはしていない。
+- Dockerfileはビルド用node_modules(devDependencies含む)をそのままproductionランナーステージにもコピーする方式にした。イメージサイズよりも「pnpmのproduction-only pruningがネイティブモジュール(sharp/esbuild)や`drizzle-kit`/`tsx`絡みで壊れるリスクを避けるシンプルさ」を優先。個人用小規模Wikiの規模ではイメージサイズは問題にならない。
+- マイグレーション実行にはdrizzle-kitのCLI(`drizzle-kit migrate`)ではなく、phase2で作成済みの自前スクリプト`server/database/migrate.ts`(`drizzle-orm/postgres-js/migrator`の`migrate()`を直接呼ぶ)を`tsx`経由でentrypointから実行する方式にした。drizzle-kit本体を本番イメージに含める必要がなくなる。
+- `docker-compose.yml`の`app`サービスは`env_file: .env`のような一括読み込みを使わず、`environment:`ブロックで必要な変数だけを明示的に列挙した。これにより、ローカル開発用`.env`に`NUXT_DEV_AUTH_BYPASS=1`が残っていても、参照していない変数はコンテナ内に一切伝播しない(本番で`/api/dev/login`が404であることの土台)。
+- (バグ修正) `db`サービスのヘルスチェック`pg_isready -U koha`が、`-d`未指定だとPostgreSQLの慣習でユーザー名と同名のDB(`koha`)に接続しようとし、実際のDB名(`koha_wiki`)と食い違って`FATAL: database "koha" does not exist`のログが5秒おきに出続けていた。`-d ${POSTGRES_DB}`を明示して修正(ヘルスチェック自体は誤判定していなかったが、ログノイズと将来の誤診断リスクを解消)。
