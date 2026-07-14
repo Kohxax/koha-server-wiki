@@ -30,7 +30,7 @@ function submitSearch() {
 <template>
   <div class="flex min-h-screen flex-col">
     <header class="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4">
-      <NuxtLink to="/" class="shrink-0 font-semibold">
+      <NuxtLink to="/" class="shrink-0 font-semibold text-primary">
         こは鯖wiki
       </NuxtLink>
       <div class="flex flex-1 justify-center px-4">

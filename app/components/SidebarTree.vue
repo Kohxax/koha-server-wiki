@@ -18,8 +18,8 @@ function linkTo(path: string) {
       <NuxtLink
         v-if="node.path"
         :to="linkTo(node.path)"
-        class="block rounded px-2 py-1 hover:bg-muted"
-        active-class="bg-muted font-medium"
+        class="block rounded border-l-2 border-transparent px-2 py-1 hover:bg-muted"
+        active-class="border-primary bg-primary/10 font-medium text-primary"
       >
         {{ node.label }}
       </NuxtLink>
