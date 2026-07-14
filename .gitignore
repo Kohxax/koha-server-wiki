@@ -3,7 +3,7 @@ node_modules
 .output
 .nuxt
 dist
-uploads/
+/uploads/
 PLAN.md
 QUESTIONS.md
 test-results/

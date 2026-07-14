@@ -11,3 +11,6 @@
 - サイドバー自動ツリー生成(`buildPageTree`)は、パスの各セグメントに対応する実ページが存在すればそのタイトルをラベルに、存在しない中間フォルダはセグメント名をそのままラベルにする方式にした。
 - Playwright (headless Chromium) もdockerと同様、システムライブラリのインストールに`sudo`が必要で自動化できなかった(QUESTIONS.md参照)。E2Eのコード・設定(`playwright.config.ts`、`e2e/`、dev-bypassでrole別`storageState`を作る`global.setup.ts`)は完成させ、実行検証は依存解消後に行う方針とした。それまではdevサーバー起動+curlによる手動検証でロジックの妥当性を確認している。
 - モバイル用の編集/プレビュー切替タブは`md:hidden`のボタンで表示/非表示を制御し、デスクトップでは常に2ペイン(textarea+プレビュー)を並べて表示する。Playwrightのデフォルト(デスクトップ)ビューポートではこのタブボタンは操作対象にしていない。
+- アップロード先ディレクトリは環境変数`UPLOAD_DIR`(省略時`./uploads`)で指定する方式にした。本番はdocker composeのボリューム`/data/uploads`をこの変数で指定する想定(phase10で設定)。
+- `media.kind`は基本的に`POST /api/media`ではアップロードされたファイルの種別に関わらず既定で`image`。`diagram`(draw.io由来のSVG)はフォームフィールド`kind=diagram`を明示的に送った場合のみ設定される。draw.io統合(phase7)はこの`kind`フィールドを使って区別する想定。
+- SVGの安全性チェックは`<script>`・`on*`イベント属性・`javascript:` href・`<foreignObject>`を正規表現で拒否する簡易サニタイズに留めた(draw.io出力を通す最小限の対策として要件通り)。

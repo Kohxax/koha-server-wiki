@@ -52,6 +52,12 @@ function insertLink() {
 function insertCodeBlock() {
   insertAtCursor("```\n", "\n```", "コード")
 }
+
+const mediaDialogOpen = ref(false)
+
+function insertMedia(markdown: string) {
+  insertAtCursor(markdown)
+}
 </script>
 
 <template>
@@ -68,6 +74,9 @@ function insertCodeBlock() {
       </UiButton>
       <UiButton type="button" variant="ghost" size="sm" title="コードブロック" @click="insertCodeBlock">
         {{ '</>' }}
+      </UiButton>
+      <UiButton type="button" variant="ghost" size="sm" title="画像" @click="mediaDialogOpen = true">
+        🖼️
       </UiButton>
       <div class="flex-1" />
       <div class="flex gap-1 md:hidden">
@@ -95,5 +104,7 @@ function insertCodeBlock() {
         <MDC :value="previewContent" tag="div" class="prose dark:prose-invert max-w-none" />
       </div>
     </div>
+
+    <MediaLibraryDialog v-model:open="mediaDialogOpen" @insert="insertMedia" />
   </div>
 </template>
