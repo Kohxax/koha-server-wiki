@@ -10,6 +10,8 @@
 - Nuxtの型付き`$fetch`/`useFetch`は、`/api/pages/${path}`のようなテンプレートリテラルURLに対して、同じ`/api/pages/`配下にある無関係のリテラルルート(`tree.get.ts`)の返り値型を誤って推論することがあった。回避策として`useFetch<Page>(...)` / `$fetch<Page>(...)`のように明示的にジェネリクスを指定している。
 - サイドバー自動ツリー生成(`buildPageTree`)は、パスの各セグメントに対応する実ページが存在すればそのタイトルをラベルに、存在しない中間フォルダはセグメント名をそのままラベルにする方式にした。
 - Playwright (headless Chromium) もdockerと同様、システムライブラリのインストールに`sudo`が必要で自動化できなかった(QUESTIONS.md参照)。E2Eのコード・設定(`playwright.config.ts`、`e2e/`、dev-bypassでrole別`storageState`を作る`global.setup.ts`)は完成させ、実行検証は依存解消後に行う方針とした。それまではdevサーバー起動+curlによる手動検証でロジックの妥当性を確認している。
+- (フェーズ11で判明・修正) ユーザーがPlaywrightの実行環境を整えた後、初回のE2E実行で13件中5件が失敗した。原因は`playwright.config.ts`の`webServer`が`pnpm dev`(Nuxt DevTools・HMR込みの開発サーバー)を使っていたこと。開発サーバーはSSR HTMLを即座に返すため、Playwrightの操作性チェックはボタンを「クリック可能」と即断してクリックしてしまうが、Vueのクライアント側ハイドレーション(イベントリスナーの実際のアタッチ)がDevTools等のオーバーヘッドで数秒遅れることがあり、その間のクリックはVue側に届かず握りつぶされる。`node el.click()`で直接DOM発火させても再現したため、Playwright側の操作方法の問題ではなくハイドレーション未完了そのものが原因と特定した。対策として`webServer.command`を`pnpm build && pnpm preview`(本番相当ビルド)に変更し、ハイドレーションがほぼ瞬時に終わる状態でテストするようにした。E2Eはdevサーバーではなく本番ビルド相当に対して実行するのが妥当という判断(実際のユーザー体験によりE2Eを近づける意味でも合理的)。
+- (バグ修正) `e2e/admin.spec.ts`で`page.getByDisplayValue(...)`というPlaywrightに存在しないAPI(Testing Libraryのメソッドと混同)を使っていた。`page.locator("li input").evaluateAll(...)`で各input要素の実際の値を取得し配列に含まれるかを検証する方式に修正した。
 - モバイル用の編集/プレビュー切替タブは`md:hidden`のボタンで表示/非表示を制御し、デスクトップでは常に2ペイン(textarea+プレビュー)を並べて表示する。Playwrightのデフォルト(デスクトップ)ビューポートではこのタブボタンは操作対象にしていない。
 - アップロード先ディレクトリは環境変数`UPLOAD_DIR`(省略時`./uploads`)で指定する方式にした。本番はdocker composeのボリューム`/data/uploads`をこの変数で指定する想定(phase10で設定)。
 - `media.kind`は基本的に`POST /api/media`ではアップロードされたファイルの種別に関わらず既定で`image`。`diagram`(draw.io由来のSVG)はフォームフィールド`kind=diagram`を明示的に送った場合のみ設定される。draw.io統合(phase7)はこの`kind`フィールドを使って区別する想定。

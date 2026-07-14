@@ -18,9 +18,13 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm dev",
+    // Run against a production build rather than `nuxt dev`: dev-mode hydration
+    // (HMR/DevTools overhead) can lag noticeably behind the SSR-rendered HTML,
+    // so Playwright's actionability checks see a "ready" button before Vue has
+    // actually attached its click handler, causing clicks to be silently lost.
+    command: "pnpm build && pnpm preview",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
+    timeout: 120_000,
   },
 })

@@ -54,7 +54,10 @@ test.describe("manual sidebar editing", () => {
     await page.goto("/admin/sidebar")
     await page.getByRole("button", { name: "自動" }).click()
     await page.getByRole("button", { name: "手動" }).click()
-    await expect(page.locator("li input").filter({ hasText: "" }).last()).toBeVisible()
-    await expect(page.getByDisplayValue(label)).toBeVisible()
+
+    const restoredValues = await page.locator("li input").evaluateAll(
+      els => els.map(el => (el as HTMLInputElement).value),
+    )
+    expect(restoredValues).toContain(label)
   })
 })
