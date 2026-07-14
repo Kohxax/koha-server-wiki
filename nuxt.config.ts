@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineNuxtConfig({
@@ -13,6 +14,11 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
+    // Anchored to this config file's location (resolved at build time), not
+    // process.cwd(): `nuxt dev` and `nuxt preview` run with different cwds
+    // (project root vs .output), which otherwise silently splits uploads into
+    // two different directories depending on how the server was started.
+    uploadDir: process.env.UPLOAD_DIR || fileURLToPath(new URL('./uploads', import.meta.url)),
     public: {
       devAuthBypass: !!process.env.NUXT_DEV_AUTH_BYPASS,
     },
