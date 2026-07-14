@@ -12,6 +12,13 @@ async function logout() {
 }
 
 const { data: sidebar } = await useFetch('/api/sidebar', { key: 'sidebar' })
+
+const searchQuery = ref('')
+function submitSearch() {
+  const q = searchQuery.value.trim()
+  if (q)
+    navigateTo(`/search?q=${encodeURIComponent(q)}`)
+}
 </script>
 
 <template>
@@ -53,6 +60,13 @@ const { data: sidebar } = await useFetch('/api/sidebar', { key: 'sidebar' })
     <div class="flex flex-1">
       <aside class="hidden w-64 shrink-0 border-r md:block">
         <UiScrollArea class="h-[calc(100vh-3.5rem)] p-4">
+          <UiInput
+            v-model="searchQuery"
+            type="search"
+            placeholder="検索..."
+            class="mb-4"
+            @keyup.enter="submitSearch"
+          />
           <SidebarTree v-if="sidebar?.tree.length" :nodes="sidebar.tree" />
           <p v-else class="text-sm text-muted-foreground">
             ページがまだありません
