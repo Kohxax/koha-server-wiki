@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { BoldIcon, CodeIcon, HeadingIcon, ImageIcon, LinkIcon, ShapesIcon } from '@lucide/vue'
+
 const model = defineModel<string>({ required: true })
 
 const textareaRef = ref<{ $el: HTMLTextAreaElement } | HTMLTextAreaElement | null>(null)
@@ -65,22 +67,22 @@ function insertMedia(markdown: string) {
   <div class="flex flex-col gap-2">
     <div class="flex flex-wrap items-center gap-1 rounded-md border p-1">
       <UiButton type="button" variant="ghost" size="sm" title="太字" @click="insertBold">
-        B
+        <BoldIcon />
       </UiButton>
       <UiButton type="button" variant="ghost" size="sm" title="見出し" @click="insertHeading">
-        H
+        <HeadingIcon />
       </UiButton>
       <UiButton type="button" variant="ghost" size="sm" title="リンク" @click="insertLink">
-        🔗
+        <LinkIcon />
       </UiButton>
       <UiButton type="button" variant="ghost" size="sm" title="コードブロック" @click="insertCodeBlock">
-        {{ '</>' }}
+        <CodeIcon />
       </UiButton>
       <UiButton type="button" variant="ghost" size="sm" title="画像" @click="mediaDialogOpen = true">
-        🖼️
+        <ImageIcon />
       </UiButton>
       <UiButton type="button" variant="ghost" size="sm" title="図表" @click="drawioDialogOpen = true">
-        📐
+        <ShapesIcon />
       </UiButton>
       <div class="flex-1" />
       <div class="flex gap-1 md:hidden">

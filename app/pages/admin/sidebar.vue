@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, ArrowUpIcon, XIcon } from "@lucide/vue"
 import type { TreeNode } from "~~/server/utils/tree"
 import {
   indentNode,
@@ -122,19 +123,19 @@ const selectedPageToAdd = ref("")
             {{ node.path }}
           </span>
           <UiButton size="icon-sm" variant="ghost" title="上へ" @click="outline = moveNodeUp(outline, index)">
-            ↑
+            <ArrowUpIcon />
           </UiButton>
           <UiButton size="icon-sm" variant="ghost" title="下へ" @click="outline = moveNodeDown(outline, index)">
-            ↓
+            <ArrowDownIcon />
           </UiButton>
           <UiButton size="icon-sm" variant="ghost" title="インデント" @click="outline = indentNode(outline, index)">
-            →
+            <ArrowRightIcon />
           </UiButton>
           <UiButton size="icon-sm" variant="ghost" title="アウトデント" @click="outline = outdentNode(outline, index)">
-            ←
+            <ArrowLeftIcon />
           </UiButton>
           <UiButton size="icon-sm" variant="ghost" title="削除" @click="removeNode(index)">
-            ✕
+            <XIcon />
           </UiButton>
         </li>
       </ul>
