@@ -10,6 +10,8 @@ const { data: page, status, error } = await useFetch<Page>(() => `/api/pages/${p
 
 const canEdit = computed(() => user.value?.role === "editor" || user.value?.role === "admin")
 const notFound = computed(() => error.value?.statusCode === 404)
+
+useHead({ title: () => page.value?.title ?? props.path })
 </script>
 
 <template>

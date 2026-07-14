@@ -6,6 +6,8 @@ definePageMeta({ middleware: ["require-editor"] })
 const { data: items, refresh } = await useFetch<Media[]>("/api/media", { key: "admin-media" })
 const deletingId = ref<number | null>(null)
 
+useHead({ title: "メディア管理" })
+
 async function remove(item: Media) {
   if (!confirm(`「${item.originalName}」を削除しますか?`))
     return

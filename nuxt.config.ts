@@ -7,6 +7,11 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
   modules: ['shadcn-nuxt', '@nuxt/fonts', '@nuxtjs/color-mode', 'nuxt-auth-utils', '@nuxtjs/mdc'],
+  app: {
+    head: {
+      titleTemplate: 'こは鯖wiki | %s',
+    },
+  },
   runtimeConfig: {
     public: {
       devAuthBypass: !!process.env.NUXT_DEV_AUTH_BYPASS,

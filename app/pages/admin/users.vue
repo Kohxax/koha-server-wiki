@@ -9,6 +9,8 @@ const { data: users, refresh } = await useFetch<User[]>("/api/admin/users", { ke
 const updatingId = ref<number | null>(null)
 const roles = ["viewer", "editor", "admin"] as const
 
+useHead({ title: "ユーザー管理" })
+
 async function changeRole(target: User, role: typeof roles[number]) {
   if (role === target.role)
     return

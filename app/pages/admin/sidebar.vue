@@ -70,6 +70,8 @@ async function saveTree() {
 }
 
 const selectedPageToAdd = ref("")
+
+useHead({ title: "サイドバー設定" })
 </script>
 
 <template>

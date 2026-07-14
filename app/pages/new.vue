@@ -4,6 +4,8 @@ definePageMeta({ middleware: ["require-editor"] })
 const path = ref("")
 const error = ref("")
 
+useHead({ title: "新規ページ作成" })
+
 function submit() {
   const trimmed = path.value.trim().replace(/^\/+/, "").replace(/\/+$/, "")
   if (!trimmed) {

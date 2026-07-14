@@ -16,6 +16,8 @@ const { data: results, status } = await useFetch<SearchResult[]>("/api/search", 
 function linkTo(path: string) {
   return path === "home" ? "/" : `/wiki/${path}`
 }
+
+useHead({ title: () => `検索: ${q.value}` })
 </script>
 
 <template>

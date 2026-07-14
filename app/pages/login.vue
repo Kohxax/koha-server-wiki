@@ -3,6 +3,8 @@ const config = useRuntimeConfig()
 const { fetch: refreshSession } = useUserSession()
 const pending = ref(false)
 
+useHead({ title: "ログイン" })
+
 async function devLogin(role: "admin" | "editor" | "viewer") {
   pending.value = true
   try {

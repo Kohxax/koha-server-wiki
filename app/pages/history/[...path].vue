@@ -48,6 +48,8 @@ const selectedEntry = computed(() => {
     ? { title: revision.title, content: revision.content, at: revision.createdAt, by: revision.editedByUsername }
     : null
 })
+
+useHead({ title: () => `履歴: ${data.value?.current.title ?? path.value}` })
 </script>
 
 <template>
