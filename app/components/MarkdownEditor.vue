@@ -95,16 +95,16 @@ function insertMedia(markdown: string) {
       </div>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid flex-1 gap-4 md:grid-cols-2">
       <UiTextarea
         ref="textareaRef"
         v-model="model"
-        class="min-h-[24rem] font-mono md:block"
+        class="h-[calc(100vh-16rem)] min-h-[24rem] font-mono md:block"
         :class="mobileView === 'edit' ? 'block' : 'hidden'"
         placeholder="Markdownで本文を入力"
       />
       <div
-        class="min-h-[24rem] rounded-md border p-4 md:block"
+        class="h-[calc(100vh-16rem)] min-h-[24rem] overflow-auto rounded-md border p-4 md:block"
         :class="mobileView === 'preview' ? 'block' : 'hidden'"
       >
         <MDC :value="previewContent" tag="div" class="prose dark:prose-invert max-w-none" />

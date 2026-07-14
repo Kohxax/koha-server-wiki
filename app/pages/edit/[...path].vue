@@ -55,15 +55,15 @@ onBeforeUnmount(() => window.removeEventListener("beforeunload", handleBeforeUnl
 </script>
 
 <template>
-  <div class="mx-auto flex max-w-4xl flex-col gap-4 py-6">
+  <div class="flex h-[calc(100vh-6.5rem)] flex-col gap-4">
     <h1 class="text-xl font-semibold">
       {{ existing ? 'ページを編集' : 'ページを作成' }}: {{ path }}
     </h1>
     <div>
       <label class="text-sm font-medium" for="edit-title">タイトル</label>
-      <UiInput id="edit-title" v-model="title" />
+      <UiInput id="edit-title" v-model="title" class="max-w-md" />
     </div>
-    <div>
+    <div class="flex flex-1 flex-col">
       <span class="text-sm font-medium">本文 (Markdown)</span>
       <MarkdownEditor v-model="content" />
     </div>
