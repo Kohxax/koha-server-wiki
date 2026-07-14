@@ -66,7 +66,7 @@ function onDiagramInsert(markdown: string) {
 
 <template>
   <UiDialog v-model:open="open">
-    <UiDialogContent class="max-w-2xl">
+    <UiDialogContent class="max-h-[90vh] max-w-4xl sm:max-w-4xl">
       <UiDialogHeader>
         <UiDialogTitle>メディアライブラリ</UiDialogTitle>
       </UiDialogHeader>
@@ -93,8 +93,8 @@ function onDiagramInsert(markdown: string) {
         </p>
       </div>
 
-      <UiScrollArea class="h-72">
-        <div class="grid grid-cols-3 gap-2 p-1 sm:grid-cols-4">
+      <UiScrollArea class="h-[60vh]">
+        <div class="grid grid-cols-3 gap-2 p-1 sm:grid-cols-5">
           <div
             v-for="item in items"
             :key="item.id"

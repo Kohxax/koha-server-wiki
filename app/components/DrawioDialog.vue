@@ -85,7 +85,7 @@ onBeforeUnmount(() => window.removeEventListener("message", onMessage))
 
 <template>
   <UiDialog v-model:open="open">
-    <UiDialogContent class="h-[90vh] max-w-[95vw] p-0">
+    <UiDialogContent class="h-[90vh] max-w-[95vw] p-0 sm:max-w-[95vw]">
       <UiDialogHeader class="p-4 pb-0">
         <UiDialogTitle>図表エディタ (draw.io)</UiDialogTitle>
       </UiDialogHeader>
