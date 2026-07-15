@@ -32,6 +32,9 @@ async function changeRole(target: User, role: typeof roles[number]) {
     <UiTable>
       <UiTableHeader>
         <UiTableRow>
+          <UiTableHead class="w-12">
+            アイコン
+          </UiTableHead>
           <UiTableHead>ユーザー名</UiTableHead>
           <UiTableHead>Discord ID</UiTableHead>
           <UiTableHead>権限</UiTableHead>
@@ -39,6 +42,12 @@ async function changeRole(target: User, role: typeof roles[number]) {
       </UiTableHeader>
       <UiTableBody>
         <UiTableRow v-for="target in users" :key="target.id">
+          <UiTableCell>
+            <UiAvatar class="size-8">
+              <UiAvatarImage v-if="target.avatarUrl" :src="target.avatarUrl" :alt="target.username" />
+              <UiAvatarFallback>{{ target.username.slice(0, 1).toUpperCase() }}</UiAvatarFallback>
+            </UiAvatar>
+          </UiTableCell>
           <UiTableCell>{{ target.username }}</UiTableCell>
           <UiTableCell class="font-mono text-xs">
             {{ target.discordId }}
