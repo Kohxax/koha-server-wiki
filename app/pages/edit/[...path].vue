@@ -57,21 +57,21 @@ onBeforeUnmount(() => window.removeEventListener("beforeunload", handleBeforeUnl
 
 <template>
   <div class="flex h-[calc(100vh-6.5rem)] flex-col gap-4">
-    <h1 class="text-xl font-semibold">
+    <h1 class="shrink-0 text-xl font-semibold">
       {{ existing ? 'ページを編集' : 'ページを作成' }}: {{ path }}
     </h1>
-    <div>
+    <div class="shrink-0">
       <label class="text-sm font-medium" for="edit-title">タイトル</label>
       <UiInput id="edit-title" v-model="title" class="max-w-md" />
     </div>
-    <div class="flex flex-1 flex-col">
+    <div class="flex min-h-0 flex-1 flex-col">
       <span class="text-sm font-medium">本文 (Markdown)</span>
       <MarkdownEditor v-model="content" />
     </div>
-    <p v-if="errorMessage" class="text-sm text-destructive">
+    <p v-if="errorMessage" class="shrink-0 text-sm text-destructive">
       {{ errorMessage }}
     </p>
-    <div class="flex items-center justify-end gap-2">
+    <div class="flex shrink-0 items-center justify-end gap-2">
       <span v-if="isDirty" class="text-sm text-muted-foreground">未保存の変更があります</span>
       <UiButton :disabled="saving" @click="save">
         保存

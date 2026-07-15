@@ -64,8 +64,8 @@ function insertMedia(markdown: string) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
-    <div class="flex flex-wrap items-center gap-1 rounded-md border p-1">
+  <div class="flex min-h-0 flex-1 flex-col gap-2">
+    <div class="flex shrink-0 flex-wrap items-center gap-1 rounded-md border p-1">
       <UiButton type="button" variant="ghost" size="sm" title="太字" @click="insertBold">
         <BoldIcon />
       </UiButton>
@@ -95,16 +95,16 @@ function insertMedia(markdown: string) {
       </div>
     </div>
 
-    <div class="grid flex-1 gap-4 md:grid-cols-2">
+    <div class="grid min-h-0 flex-1 gap-4 md:grid-cols-2">
       <UiTextarea
         ref="textareaRef"
         v-model="model"
-        class="h-[calc(100vh-16rem)] min-h-[24rem] font-mono md:block"
+        class="h-full min-h-0 font-mono md:block"
         :class="mobileView === 'edit' ? 'block' : 'hidden'"
         placeholder="Markdownで本文を入力"
       />
       <div
-        class="h-[calc(100vh-16rem)] min-h-[24rem] overflow-auto rounded-md border p-4 md:block"
+        class="h-full min-h-0 overflow-auto rounded-md border p-4 md:block"
         :class="mobileView === 'preview' ? 'block' : 'hidden'"
       >
         <MDC :value="previewContent" tag="div" class="prose dark:prose-invert max-w-none" />
