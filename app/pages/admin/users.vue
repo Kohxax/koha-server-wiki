@@ -53,16 +53,24 @@ async function changeRole(target: User, role: typeof roles[number]) {
             {{ target.discordId }}
           </UiTableCell>
           <UiTableCell>
-            <select
-              class="rounded border bg-background px-2 py-1 text-sm"
-              :value="target.role"
-              :disabled="updatingId === target.id || (target.id === currentUser?.id && target.role === 'admin')"
-              @change="changeRole(target, ($event.target as HTMLSelectElement).value as typeof roles[number])"
-            >
-              <option v-for="role in roles" :key="role" :value="role">
-                {{ role }}
-              </option>
-            </select>
+            <UiDropdownMenu>
+              <UiDropdownMenuTrigger as-child>
+                <UiButton
+                  size="sm"
+                  variant="outline"
+                  :disabled="updatingId === target.id || (target.id === currentUser?.id && target.role === 'admin')"
+                >
+                  {{ target.role }}
+                </UiButton>
+              </UiDropdownMenuTrigger>
+              <UiDropdownMenuContent align="start">
+                <UiDropdownMenuRadioGroup :model-value="target.role" @update:model-value="changeRole(target, $event as typeof roles[number])">
+                  <UiDropdownMenuRadioItem v-for="role in roles" :key="role" :value="role">
+                    {{ role }}
+                  </UiDropdownMenuRadioItem>
+                </UiDropdownMenuRadioGroup>
+              </UiDropdownMenuContent>
+            </UiDropdownMenu>
           </UiTableCell>
         </UiTableRow>
       </UiTableBody>

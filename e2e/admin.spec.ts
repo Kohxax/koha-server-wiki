@@ -8,8 +8,9 @@ test.describe("admin users", () => {
     await expect(page.getByRole("heading", { name: "ユーザー管理" })).toBeVisible()
 
     const viewerRow = page.getByRole("row", { name: /dev-viewer/ })
-    await viewerRow.getByRole("combobox").selectOption("editor")
-    await expect(viewerRow.getByRole("combobox")).toHaveValue("editor")
+    await viewerRow.getByRole("button", { name: "viewer" }).click()
+    await viewerRow.getByRole("menuitemradio", { name: "editor" }).click()
+    await expect(viewerRow.getByRole("button", { name: "editor" })).toBeVisible()
   })
 })
 
