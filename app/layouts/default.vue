@@ -30,8 +30,9 @@ function submitSearch() {
 <template>
   <div class="flex min-h-screen flex-col">
     <header class="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4">
-      <NuxtLink to="/" class="shrink-0 font-semibold text-primary">
-        こは鯖wiki
+      <NuxtLink to="/" class="flex shrink-0 items-center gap-2 font-semibold text-primary">
+        <img src="~/assets/images/face.webp" alt="" class="size-8 object-contain" width="32" height="32">
+        <span>こは鯖wiki</span>
       </NuxtLink>
       <div class="flex flex-1 justify-center px-4">
         <div class="relative w-full max-w-md">
