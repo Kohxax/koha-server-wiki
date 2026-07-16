@@ -1,6 +1,12 @@
 <script setup lang="ts">
-import { ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, ArrowUpIcon, XIcon } from "@lucide/vue"
+import {
+  BookOpenIcon, CircuitBoardIcon, CodeIcon, CogIcon, CpuIcon, DatabaseIcon, FileTextIcon,
+  FolderIcon, HammerIcon, HardHatIcon, InfoIcon, LightbulbIcon, MapIcon, NetworkIcon,
+  PackageIcon, RocketIcon, ServerIcon, ShieldIcon, TerminalIcon, WrenchIcon, XIcon,
+} from "@lucide/vue"
+import type { Component } from "vue"
 import type { TreeNode } from "~~/server/utils/tree"
+import { sidebarIconOptions, type SidebarIconName } from "~~/shared/utils/sidebar-icons"
 import {
   indentNode,
   moveNodeDown,
@@ -25,6 +31,29 @@ const outline = ref<OutlineNode[]>(treeToOutline(sidebar.value?.manualTree ?? []
 const saving = ref(false)
 let nextId = 0
 
+const iconComponents: Record<SidebarIconName, Component> = {
+  Cog: CogIcon,
+  Server: ServerIcon,
+  BookOpen: BookOpenIcon,
+  Folder: FolderIcon,
+  Info: InfoIcon,
+  Wrench: WrenchIcon,
+  Hammer: HammerIcon,
+  HardHat: HardHatIcon,
+  CircuitBoard: CircuitBoardIcon,
+  Cpu: CpuIcon,
+  Database: DatabaseIcon,
+  Network: NetworkIcon,
+  Shield: ShieldIcon,
+  Terminal: TerminalIcon,
+  Code: CodeIcon,
+  FileText: FileTextIcon,
+  Lightbulb: LightbulbIcon,
+  Map: MapIcon,
+  Package: PackageIcon,
+  Rocket: RocketIcon,
+}
+
 function availablePages(): { path: string, label: string }[] {
   const result: { path: string, label: string }[] = []
   function walk(nodes: TreeNode[]) {
@@ -41,7 +70,7 @@ function availablePages(): { path: string, label: string }[] {
 async function changeMode(newMode: "auto" | "manual") {
   mode.value = newMode
   await $fetch("/api/sidebar", { method: "PUT", body: { mode: newMode } })
-  await refresh()
+  await Promise.all([refresh(), refreshNuxtData("sidebar")])
 }
 
 function addHeading() {
@@ -59,11 +88,18 @@ function removeNode(index: number) {
   outline.value = outline.value.filter((_, i) => i !== index)
 }
 
+function setIcon(index: number, icon?: SidebarIconName) {
+  const node = outline.value[index]
+  if (!node)
+    return
+  outline.value[index] = { ...node, icon }
+}
+
 async function saveTree() {
   saving.value = true
   try {
     await $fetch("/api/sidebar", { method: "PUT", body: { tree: outlineToTree(outline.value) } })
-    await refresh()
+    await Promise.all([refresh(), refreshNuxtData("sidebar")])
   } finally {
     saving.value = false
   }
@@ -124,6 +160,31 @@ useHead({ title: "サイドバー設定" })
           <span v-if="node.path" class="whitespace-nowrap text-xs text-muted-foreground">
             {{ node.path }}
           </span>
+          <UiDropdownMenu v-if="!node.path">
+            <UiDropdownMenuTrigger as-child>
+              <UiButton size="icon-sm" variant="ghost" title="アイコンを選択">
+                <component :is="node.icon ? iconComponents[node.icon] : FolderIcon" />
+              </UiButton>
+            </UiDropdownMenuTrigger>
+            <UiDropdownMenuContent align="end" class="w-72 p-2">
+              <div class="mb-2 flex items-center justify-between px-1 text-xs text-muted-foreground">
+                アイコンを選択（{{ sidebarIconOptions.length }}種類）
+                <UiButton size="sm" variant="ghost" @click="setIcon(index)">なし</UiButton>
+              </div>
+              <div class="grid grid-cols-5 gap-1">
+                <UiButton
+                  v-for="option in sidebarIconOptions"
+                  :key="option.name"
+                  size="icon-sm"
+                  :variant="node.icon === option.name ? 'secondary' : 'ghost'"
+                  :title="option.label"
+                  @click="setIcon(index, option.name)"
+                >
+                  <component :is="iconComponents[option.name]" />
+                </UiButton>
+              </div>
+            </UiDropdownMenuContent>
+          </UiDropdownMenu>
           <UiButton size="icon-sm" variant="ghost" title="上へ" @click="outline = moveNodeUp(outline, index)">
             <ArrowUpIcon />
           </UiButton>

@@ -45,9 +45,10 @@ test.describe("manual sidebar editing", () => {
     await page.getByRole("button", { name: "見出しを追加" }).click()
 
     const label = `テスト見出し${Date.now()}`
-    const lastInput = page.locator("li input").last()
+    const lastInput = page.locator("li input:not([disabled])").last()
     await lastInput.fill(label)
     await page.getByRole("button", { name: "保存" }).click()
+    await expect(page.locator("aside").getByText(label)).toBeVisible()
 
     await page.goto("/")
     await expect(page.getByText(label)).toBeVisible()

@@ -1,6 +1,9 @@
+import type { SidebarIconName } from "../../shared/utils/sidebar-icons"
+
 export interface TreeNode {
   label: string
   path?: string
+  icon?: SidebarIconName
   children: TreeNode[]
 }
 

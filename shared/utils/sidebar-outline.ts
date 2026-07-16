@@ -1,9 +1,11 @@
 import type { TreeNode } from "../../server/utils/tree"
+import type { SidebarIconName } from "./sidebar-icons"
 
 export interface OutlineNode {
   id: string
   label: string
   path?: string
+  icon?: SidebarIconName
   level: number
 }
 
@@ -13,7 +15,7 @@ export function treeToOutline(nodes: TreeNode[]): OutlineNode[] {
 
   function walk(list: TreeNode[], level: number) {
     for (const node of list) {
-      result.push({ id: `n${counter++}`, label: node.label, path: node.path, level })
+      result.push({ id: `n${counter++}`, label: node.label, path: node.path, icon: node.icon, level })
       walk(node.children, level + 1)
     }
   }
@@ -31,7 +33,7 @@ export function outlineToTree(outline: OutlineNode[]): TreeNode[] {
       stack.pop()
 
     const parent = stack[stack.length - 1]!
-    const node: TreeNode = { label: item.label, path: item.path, children: [] }
+    const node: TreeNode = { label: item.label, path: item.path, icon: item.icon, children: [] }
     parent.children.push(node)
     stack.push({ level: item.level, children: node.children })
   }

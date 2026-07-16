@@ -1,10 +1,12 @@
 import { z } from "zod"
+import { sidebarIconNames } from "../../shared/utils/sidebar-icons"
 import { useDb } from "../database/client"
 import { settings } from "../database/schema"
 
 const treeNodeSchema: z.ZodType<{ label: string, path?: string, children: unknown[] }> = z.lazy(() => z.object({
   label: z.string(),
   path: z.string().optional(),
+  icon: z.enum(sidebarIconNames).optional(),
   children: z.array(treeNodeSchema),
 }))
 
