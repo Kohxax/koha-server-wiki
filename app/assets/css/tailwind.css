@@ -73,7 +73,7 @@
     --chart-3: oklch(0.627 0.194 149.214);
     --chart-4: oklch(0.527 0.154 150.069);
     --chart-5: oklch(0.448 0.119 151.328);
-    --radius: 0.625rem;
+    --radius: 0px;
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
     --sidebar-primary: oklch(0.627 0.194 149.214);
@@ -126,4 +126,101 @@
     @apply bg-background text-foreground;
     @apply font-sans;
     }
+}
+
+@layer components {
+  .wiki-prose {
+    @apply max-w-none text-[0.9375rem] leading-7 text-foreground;
+  }
+
+  .wiki-prose :where(h1, h2, h3, h4, h5, h6) {
+    @apply scroll-mt-20 font-semibold tracking-tight text-foreground;
+  }
+
+  .wiki-prose :where(h1) {
+    @apply mt-10 mb-6 border-b-2 border-primary pb-3 text-3xl;
+  }
+
+  .wiki-prose :where(h2) {
+    @apply mt-10 mb-4 border-l-4 border-primary bg-muted/50 px-3 py-1 text-2xl;
+  }
+
+  .wiki-prose :where(h3) {
+    @apply mt-8 mb-3 border-b border-border pb-2 text-xl;
+  }
+
+  .wiki-prose :where(h4) {
+    @apply mt-6 mb-2 text-lg;
+  }
+
+  .wiki-prose :where(p, ul, ol, blockquote, pre, table) {
+    @apply my-5;
+  }
+
+  .wiki-prose :where(ul, ol) {
+    @apply pl-6;
+  }
+
+  .wiki-prose :where(ul) {
+    @apply list-disc;
+  }
+
+  .wiki-prose :where(ol) {
+    @apply list-decimal;
+  }
+
+  .wiki-prose :where(li) {
+    @apply my-1;
+  }
+
+  .wiki-prose :where(a) {
+    @apply text-primary underline decoration-primary/50 underline-offset-4 hover:decoration-primary;
+  }
+
+  .wiki-prose :where(blockquote) {
+    @apply border-l-4 border-primary/70 bg-muted/60 px-4 py-2 text-muted-foreground;
+  }
+
+  .wiki-prose :where(code) {
+    @apply bg-muted px-1.5 py-0.5 font-mono text-[0.85em] text-primary;
+  }
+
+  .wiki-prose :where(pre) {
+    @apply overflow-x-auto border border-border bg-muted p-4;
+  }
+
+  .wiki-prose :where(pre code) {
+    @apply bg-transparent p-0 text-foreground;
+  }
+
+  .wiki-prose :where(table) {
+    @apply w-full border-collapse text-left;
+  }
+
+  .wiki-prose :where(th, td) {
+    @apply border border-border px-3 py-2;
+  }
+
+  .wiki-prose :where(th) {
+    @apply bg-muted font-semibold;
+  }
+
+  .wiki-prose :where(img) {
+    @apply border border-border;
+  }
+}
+
+.page-content {
+  opacity: 1;
+  transition: opacity 120ms ease-out;
+}
+
+.page-is-leaving .page-content {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-content {
+    transition: none;
+  }
 }
