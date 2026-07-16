@@ -5,6 +5,13 @@ const model = defineModel<string>({ required: true })
 
 const textareaRef = ref<{ $el: HTMLTextAreaElement } | HTMLTextAreaElement | null>(null)
 const mobileView = ref<"edit" | "preview">("edit")
+// MDC does not reliably reparse its value after mount. Keep a separate rendered
+// value and remount only the preview pane when the editor changes.
+const previewContent = ref(model.value)
+
+watch(model, (value) => {
+  previewContent.value = value
+}, { immediate: true })
 
 function getTextareaEl(): HTMLTextAreaElement | null {
   const el = textareaRef.value
@@ -79,7 +86,7 @@ function insertMedia(markdown: string) {
         class="min-h-0 overflow-auto border bg-muted/20 p-4"
         :class="mobileView === 'preview' ? 'block' : 'hidden md:block'"
       >
-        <MDC :value="model" tag="div" class="wiki-prose" />
+        <MDC :key="previewContent" :value="previewContent" tag="div" class="wiki-prose" />
       </div>
     </div>
 
