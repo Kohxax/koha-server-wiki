@@ -37,6 +37,17 @@ describe("isSafeSvg", () => {
   it("accepts draw.io's embedded content attribute (regression: must not match 'on' inside 'content=')", () => {
     expect(isSafeSvg("<svg width=\"100\" height=\"100\" content=\"&lt;mxfile&gt;v1&lt;/mxfile&gt;\"><rect/></svg>")).toBe(true)
   })
+
+  it("allows draw.io labels with foreignObject only for diagrams", () => {
+    const svg = "<svg><foreignObject><div>ラベル</div></foreignObject></svg>"
+    expect(isSafeSvg(svg)).toBe(false)
+    expect(isSafeSvg(svg, { allowForeignObject: true })).toBe(true)
+  })
+
+  it("rejects executable content even when foreignObject is allowed", () => {
+    expect(isSafeSvg("<svg><foreignObject onload=\"alert(1)\" /></svg>", { allowForeignObject: true })).toBe(false)
+    expect(isSafeSvg("<svg><foreignObject><iframe src=\"https://example.com\" /></foreignObject></svg>", { allowForeignObject: true })).toBe(false)
+  })
 })
 
 describe("extToMime", () => {

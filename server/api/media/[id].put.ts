@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 415, statusMessage: "再編集で上書きできるのはSVG(図表)のみです" })
 
   const text = filePart.data.toString("utf8")
-  if (!isSafeSvg(text))
+  if (!isSafeSvg(text, { allowForeignObject: existing.kind === "diagram" }))
     throw createError({ statusCode: 422, statusMessage: "安全でないSVGです" })
 
   // Overwrite the file in place so the filename (and every page referencing it) stays the same.

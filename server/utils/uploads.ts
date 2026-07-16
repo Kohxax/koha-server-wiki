@@ -25,10 +25,11 @@ export function isAllowedMime(mime: string): boolean {
   return mime in ALLOWED_MIME_TO_EXT
 }
 
-const SVG_DANGEROUS_PATTERN = /<script|\bon\w+\s*=|xlink:href\s*=\s*["']?\s*javascript:|<foreignobject/i
+const SVG_DANGEROUS_PATTERN = /<script|\bon\w+\s*=|(?:xlink:)?href\s*=\s*["']?\s*(?:javascript:|data:text\/html)|<(?:iframe|object|embed)\b/i
 
-export function isSafeSvg(content: string): boolean {
+export function isSafeSvg(content: string, { allowForeignObject = false } = {}): boolean {
   return !SVG_DANGEROUS_PATTERN.test(content)
+    && (allowForeignObject || !/<foreignobject\b/i.test(content))
 }
 
 export function extToMime(ext: string): string {

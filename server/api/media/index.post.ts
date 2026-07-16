@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
 
   if (mime === "image/svg+xml") {
     const text = filePart.data.toString("utf8")
-    if (!isSafeSvg(text))
+    if (!isSafeSvg(text, { allowForeignObject: kind === "diagram" }))
       throw createError({ statusCode: 422, statusMessage: "安全でないSVGです" })
   } else if (mime !== "image/gif") {
     const resized = await sharp(filePart.data)
