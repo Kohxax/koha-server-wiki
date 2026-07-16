@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MoonIcon, PlusIcon, SearchIcon, SettingsIcon, SunIcon } from '@lucide/vue'
+import { MoonIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, PlusIcon, SearchIcon, SettingsIcon, SunIcon } from '@lucide/vue'
 
 const colorMode = useColorMode()
 const { loggedIn, user, clear } = useUserSession()
@@ -18,6 +18,7 @@ async function logout() {
 }
 
 const { data: sidebar } = await useFetch('/api/sidebar', { key: 'sidebar' })
+const sidebarOpen = useState('sidebar-open', () => true)
 
 const searchQuery = ref('')
 function submitSearch() {
@@ -34,6 +35,16 @@ function submitSearch() {
         <img src="~/assets/images/face.webp" alt="" class="size-8 object-contain" width="32" height="32">
         <span>こは鯖wiki</span>
       </NuxtLink>
+      <UiButton
+        class="hidden md:inline-flex"
+        variant="ghost"
+        size="icon"
+        :aria-label="sidebarOpen ? 'サイドバーを閉じる' : 'サイドバーを開く'"
+        @click="sidebarOpen = !sidebarOpen"
+      >
+        <PanelLeftCloseIcon v-if="sidebarOpen" />
+        <PanelLeftOpenIcon v-else />
+      </UiButton>
       <div class="flex flex-1 justify-center px-4">
         <div class="relative w-full max-w-md">
           <SearchIcon class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -103,7 +114,7 @@ function submitSearch() {
       </UiDropdownMenu>
     </header>
     <div class="flex flex-1">
-      <aside class="hidden w-64 shrink-0 flex-col border-r md:flex">
+      <aside v-if="sidebarOpen" class="hidden w-64 shrink-0 flex-col border-r bg-muted/20 md:flex">
         <UiScrollArea class="min-h-0 flex-1 p-4">
           <SidebarTree v-if="sidebar?.tree.length" :nodes="sidebar.tree" />
           <p v-else class="text-sm text-muted-foreground">
