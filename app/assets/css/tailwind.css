@@ -134,23 +134,31 @@
   }
 
   .wiki-prose :where(h1, h2, h3, h4, h5, h6) {
-    @apply scroll-mt-20 font-semibold tracking-tight text-foreground;
+    @apply scroll-mt-20 border-l-4 border-primary px-3 font-semibold tracking-tight text-foreground;
   }
 
   .wiki-prose :where(h1) {
-    @apply mt-10 mb-6 border-b-2 border-primary pb-3 text-3xl;
+    @apply mt-10 mb-6 text-3xl;
   }
 
   .wiki-prose :where(h2) {
-    @apply mt-10 mb-4 border-l-4 border-primary bg-muted/50 px-3 py-1 text-2xl;
+    @apply mt-9 mb-4 text-2xl;
   }
 
   .wiki-prose :where(h3) {
-    @apply mt-8 mb-3 border-b border-border pb-2 text-xl;
+    @apply mt-8 mb-3 text-xl;
   }
 
   .wiki-prose :where(h4) {
     @apply mt-6 mb-2 text-lg;
+  }
+
+  .wiki-prose :where(h5) {
+    @apply mt-5 mb-2 text-base;
+  }
+
+  .wiki-prose :where(h6) {
+    @apply mt-4 mb-2 text-sm;
   }
 
   .wiki-prose :where(p, ul, ol, blockquote, pre, table) {
