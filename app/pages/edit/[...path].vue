@@ -59,6 +59,10 @@ function handleLeave(leave: boolean) {
   resolveLeave = null
 }
 
+async function cancel() {
+  await navigateTo(path.value === "home" ? "/" : `/wiki/${path.value}`)
+}
+
 function handleBeforeUnload(event: BeforeUnloadEvent) {
   if (isDirty.value)
     event.preventDefault()
@@ -86,6 +90,9 @@ onBeforeUnmount(() => window.removeEventListener("beforeunload", handleBeforeUnl
     </p>
     <div class="flex shrink-0 items-center justify-end gap-2">
       <span v-if="isDirty" class="text-sm text-muted-foreground">未保存の変更があります</span>
+      <UiButton variant="outline" :disabled="saving" @click="cancel">
+        キャンセル
+      </UiButton>
       <UiButton :disabled="saving" @click="save">
         保存
       </UiButton>
