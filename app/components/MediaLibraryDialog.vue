@@ -72,7 +72,7 @@ function onDiagramInsert(markdown: string) {
       </UiDialogHeader>
 
       <div
-        class="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground"
+        class="border border-dashed p-4 text-center text-sm text-muted-foreground"
         @dragover.prevent
         @drop.prevent="onDrop"
       >
@@ -98,7 +98,7 @@ function onDiagramInsert(markdown: string) {
           <div
             v-for="item in items"
             :key="item.id"
-            class="group relative aspect-square overflow-hidden rounded-md border"
+            class="group relative aspect-square overflow-hidden border"
           >
             <button
               type="button"

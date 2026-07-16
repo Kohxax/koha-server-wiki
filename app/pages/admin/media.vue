@@ -29,7 +29,7 @@ async function remove(item: Media) {
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
       <UiCard v-for="item in items" :key="item.id">
         <UiCardContent class="p-2">
-          <img :src="`/uploads/${item.filename}`" :alt="item.originalName" class="aspect-square w-full rounded object-cover">
+          <img :src="`/uploads/${item.filename}`" :alt="item.originalName" class="aspect-square w-full object-cover">
           <p class="mt-1 truncate text-xs" :title="item.originalName">
             {{ item.originalName }}
           </p>

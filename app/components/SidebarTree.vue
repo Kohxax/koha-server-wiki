@@ -50,7 +50,7 @@ function linkTo(path: string) {
       <NuxtLink
         v-if="node.path"
         :to="linkTo(node.path)"
-        class="flex items-center gap-2 rounded border-l-2 border-transparent px-2 py-1 hover:bg-muted"
+        class="flex items-center gap-2 border-l-2 border-transparent px-2 py-1 hover:bg-muted"
         active-class="border-primary bg-primary/10 font-medium text-primary"
       >
         <component v-if="node.icon" :is="iconComponents[node.icon]" class="size-4 shrink-0" />

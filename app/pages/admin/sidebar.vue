@@ -131,7 +131,7 @@ useHead({ title: "サイドバー設定" })
         <UiButton size="sm" variant="outline" @click="addHeading">
           見出しを追加
         </UiButton>
-        <select v-model="selectedPageToAdd" class="rounded border bg-background px-2 py-1 text-sm">
+        <select v-model="selectedPageToAdd" class="border bg-background px-2 py-1 text-sm">
           <option value="" disabled>
             ページを選択...
           </option>
@@ -153,7 +153,7 @@ useHead({ title: "サイドバー設定" })
         <li
           v-for="(node, index) in outline"
           :key="node.id"
-          class="flex items-center gap-2 rounded border p-2"
+          class="flex items-center gap-2 border p-2"
           :style="{ marginLeft: `${node.level * 1.5}rem` }"
         >
           <UiInput v-model="node.label" class="h-7 flex-1" :disabled="!!node.path" />
