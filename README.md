@@ -4,7 +4,7 @@
 
 - スタック: Nuxt 4 / Docker Compose / PostgreSQL
 - 認証: Discord OAuth (編集者は管理画面での承認制)
-- コンテンツ: Markdown、画像アップロード(WebP自動変換)、draw.io図表、ページ履歴、検索、自由なパス階層
+- コンテンツ: Markdown、画像アップロード(WebP自動変換)、draw.io図表、検索、自由なパス階層
 
 ## セットアップ手順
 

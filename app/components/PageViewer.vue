@@ -1,15 +1,19 @@
 <script setup lang="ts">
+import { HistoryIcon } from "@lucide/vue"
 import type { Page } from "~~/server/database/schema"
 
 const props = defineProps<{ path: string }>()
 const { user } = useUserSession()
 
-const { data: page, status, error } = await useFetch<Page>(() => `/api/pages/${props.path}`, {
+type PageWithUpdater = Page & { updatedByUsername: string | null }
+
+const { data: page, status, error } = await useFetch<PageWithUpdater>(() => `/api/pages/${props.path}`, {
   key: () => `page:${props.path}`,
 })
 
 const canEdit = computed(() => user.value?.role === "editor" || user.value?.role === "admin")
 const notFound = computed(() => error.value?.statusCode === 404)
+const updatedAt = computed(() => page.value?.updatedAt ? new Date(page.value.updatedAt).toLocaleString("ja-JP") : "")
 
 useHead({ title: () => page.value?.title ?? props.path })
 </script>
@@ -34,24 +38,35 @@ useHead({ title: () => page.value?.title ?? props.path })
       ページの読み込み中にエラーが発生しました。
     </p>
   </div>
-  <article v-else-if="page">
-    <div class="mb-4 flex items-center justify-between gap-4">
-      <h1 class="text-2xl font-bold">
-        {{ page.title }}
-      </h1>
-      <div class="flex gap-2">
-        <UiButton variant="outline" size="sm" as-child>
-          <NuxtLink :to="`/history/${path}`">
-            履歴
-          </NuxtLink>
-        </UiButton>
-        <UiButton v-if="canEdit" variant="outline" size="sm" as-child>
-          <NuxtLink :to="`/edit/${path}`">
-            編集
-          </NuxtLink>
-        </UiButton>
-      </div>
+  <MDC v-else-if="page" :value="page.content" :partial="false" v-slot="{ body, data, toc }">
+    <div v-if="body" class="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[minmax(0,48rem)_14rem] lg:justify-center">
+      <article class="order-1 min-w-0">
+        <div class="mb-6 flex items-center justify-between gap-4">
+          <h1 class="text-2xl font-bold">{{ page.title }}</h1>
+          <UiButton v-if="canEdit" variant="outline" size="sm" as-child>
+            <NuxtLink :to="`/edit/${path}`">編集</NuxtLink>
+          </UiButton>
+        </div>
+        <MDCRenderer :body="body" :data="data" class="prose dark:prose-invert max-w-none [&_img]:h-auto [&_img]:max-w-full" />
+      </article>
+      <aside class="order-2 space-y-6 text-sm">
+        <section v-if="toc?.links?.length" class="rounded-md border p-4">
+          <h2 class="mb-3 font-semibold">目次</h2>
+          <nav>
+            <ul class="space-y-2">
+              <li v-for="entry in toc.links" :key="entry.id" :class="{ 'pl-3': entry.depth > 2 }">
+                <a :href="`#${entry.id}`" class="text-muted-foreground hover:text-primary">{{ entry.text }}</a>
+              </li>
+            </ul>
+          </nav>
+        </section>
+        <section class="rounded-md border p-4 text-muted-foreground">
+          <div class="flex items-start gap-2">
+            <HistoryIcon class="mt-0.5 size-4 shrink-0" />
+            <p>最終更新: {{ page.updatedByUsername ?? "不明" }}<br>（{{ updatedAt }}）</p>
+          </div>
+        </section>
+      </aside>
     </div>
-    <MDC :value="page.content" tag="div" />
-  </article>
+  </MDC>
 </template>

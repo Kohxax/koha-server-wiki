@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test"
 
 test.use({ storageState: "e2e/.auth/editor.json" })
 
-test("create, edit with live preview, save, and view history", async ({ page }) => {
+test("create, edit with live preview, and save", async ({ page }) => {
   const path = `e2e-test-${Date.now()}`
 
   await page.goto("/new")
@@ -13,7 +13,7 @@ test("create, edit with live preview, save, and view history", async ({ page }) 
   await page.getByLabel("タイトル").fill("E2Eテストページ")
   await page.locator("textarea").first().fill("# 最初の内容")
 
-  // debounced (300ms) preview pane, always visible side-by-side on desktop viewports
+  // The preview must be replaced with the current input, rather than showing a stale parse result.
   await expect(page.getByRole("heading", { name: "最初の内容" })).toBeVisible()
 
   await page.getByRole("button", { name: "保存" }).click()
@@ -25,10 +25,27 @@ test("create, edit with live preview, save, and view history", async ({ page }) 
   await page.locator("textarea").first().fill("# 更新後の内容")
   await page.getByRole("button", { name: "保存" }).click()
   await expect(page).toHaveURL(`/wiki/${path}`)
+})
 
-  await page.getByRole("link", { name: "履歴" }).click()
-  await expect(page).toHaveURL(`/history/${path}`)
-  await expect(page.getByText("現在の版")).toBeVisible()
-  const revisionCount = await page.locator("li").filter({ hasText: "E2Eテストページ" }).count()
-  expect(revisionCount).toBeGreaterThanOrEqual(1)
+test("image insertion updates the editor preview", async ({ page }) => {
+  const path = `e2e-image-${Date.now()}`
+  const imageName = `preview-${Date.now()}.svg`
+  const upload = await page.request.post("/api/media", {
+    multipart: {
+      file: {
+        name: imageName,
+        mimeType: "image/svg+xml",
+        buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>'),
+      },
+    },
+  })
+  expect(upload.ok()).toBeTruthy()
+
+  await page.goto(`/edit/${path}`)
+  await page.getByTitle("画像").click()
+  await page.getByTitle(imageName).click()
+
+  await expect(page.locator("textarea")).toHaveValue(new RegExp(`!\\[${imageName}\\]`))
+  await expect(page.getByRole("dialog")).toBeHidden()
+  await expect(page.locator(`img[alt="${imageName}"]`)).toBeVisible()
 })
