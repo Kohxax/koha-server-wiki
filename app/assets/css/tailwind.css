@@ -213,9 +213,6 @@
     @apply bg-muted font-semibold;
   }
 
-  .wiki-prose :where(img) {
-    @apply border border-border;
-  }
 }
 
 .page-content {
