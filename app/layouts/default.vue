@@ -77,7 +77,8 @@ function submitSearch() {
       </UiDropdownMenu>
       <div class="flex items-center gap-1.5">
         <SunIcon class="size-4 text-muted-foreground" />
-        <UiSwitch v-model="isDark" aria-label="テーマ切替" />
+        <UiSwitch v-if="!colorMode.unknown" v-model="isDark" aria-label="テーマ切替" />
+        <span v-else class="block h-[18.4px] w-8" aria-hidden="true" />
         <MoonIcon class="size-4 text-muted-foreground" />
       </div>
       <NuxtLink v-if="!loggedIn" to="/login">
@@ -115,7 +116,7 @@ function submitSearch() {
         </UiScrollArea>
       </aside>
       <main class="min-w-0 flex-1 p-6">
-        <div class="prose dark:prose-invert max-w-none">
+        <div class="page-content">
           <slot />
         </div>
       </main>
