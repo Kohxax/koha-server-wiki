@@ -11,6 +11,9 @@ export default defineNuxtConfig({
   app: {
     head: {
       titleTemplate: 'こは鯖wiki | %s',
+      link: [
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+      ],
     },
   },
   runtimeConfig: {
