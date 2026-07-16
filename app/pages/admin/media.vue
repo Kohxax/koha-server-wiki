@@ -5,12 +5,20 @@ definePageMeta({ middleware: ["require-editor"] })
 
 const { data: items, refresh } = await useFetch<Media[]>("/api/media", { key: "admin-media" })
 const deletingId = ref<number | null>(null)
+const itemToDelete = ref<Media | null>(null)
 
 useHead({ title: "メディア管理" })
 
-async function remove(item: Media) {
-  if (!confirm(`「${item.originalName}」を削除しますか?`))
+function requestRemove(item: Media) {
+  itemToDelete.value = item
+}
+
+async function remove() {
+  const item = itemToDelete.value
+  if (!item)
     return
+
+  itemToDelete.value = null
   deletingId.value = item.id
   try {
     await $fetch(`/api/media/${item.id}`, { method: "DELETE" })
@@ -41,7 +49,7 @@ async function remove(item: Media) {
             size="sm"
             class="mt-2 w-full"
             :disabled="deletingId === item.id"
-            @click="remove(item)"
+            @click="requestRemove(item)"
           >
             削除
           </UiButton>
@@ -51,5 +59,14 @@ async function remove(item: Media) {
     <p v-if="items && items.length === 0" class="text-sm text-muted-foreground">
       まだメディアがありません
     </p>
+    <ConfirmDialog
+      :open="!!itemToDelete"
+      title="メディアを削除しますか？"
+      :description="itemToDelete ? `「${itemToDelete.originalName}」は元に戻せません。` : ''"
+      confirm-label="削除"
+      destructive
+      @confirm="remove"
+      @cancel="itemToDelete = null"
+    />
   </div>
 </template>

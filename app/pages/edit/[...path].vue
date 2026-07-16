@@ -19,6 +19,8 @@ const savedTitle = ref(title.value)
 const savedContent = ref(content.value)
 const saving = ref(false)
 const errorMessage = ref("")
+const leaveDialogOpen = ref(false)
+let resolveLeave: ((leave: boolean) => void) | null = null
 
 const isDirty = computed(() => title.value !== savedTitle.value || content.value !== savedContent.value)
 
@@ -42,9 +44,20 @@ async function save() {
 }
 
 onBeforeRouteLeave(() => {
-  if (isDirty.value && !confirm("保存されていない変更があります。ページを離れますか?"))
-    return false
+  if (!isDirty.value)
+    return true
+
+  leaveDialogOpen.value = true
+  return new Promise<boolean>((resolve) => {
+    resolveLeave = resolve
+  })
 })
+
+function handleLeave(leave: boolean) {
+  leaveDialogOpen.value = false
+  resolveLeave?.(leave)
+  resolveLeave = null
+}
 
 function handleBeforeUnload(event: BeforeUnloadEvent) {
   if (isDirty.value)
@@ -77,5 +90,14 @@ onBeforeUnmount(() => window.removeEventListener("beforeunload", handleBeforeUnl
         保存
       </UiButton>
     </div>
+    <ConfirmDialog
+      :open="leaveDialogOpen"
+      title="未保存の変更があります"
+      description="変更を保存せずにこのページを離れますか？"
+      confirm-label="離れる"
+      destructive
+      @confirm="handleLeave(true)"
+      @cancel="handleLeave(false)"
+    />
   </div>
 </template>
