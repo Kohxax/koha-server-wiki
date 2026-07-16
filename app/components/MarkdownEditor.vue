@@ -6,13 +6,9 @@ const model = defineModel<string>({ required: true })
 const textareaRef = ref<{ $el: HTMLTextAreaElement } | HTMLTextAreaElement | null>(null)
 const mobileView = ref<"edit" | "preview">("edit")
 const previewContent = ref(model.value)
-let debounceTimer: ReturnType<typeof setTimeout> | undefined
 
 watch(model, (value) => {
-  clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => {
-    previewContent.value = value
-  }, 300)
+  previewContent.value = value
 }, { immediate: true })
 
 function getTextareaEl(): HTMLTextAreaElement | null {
@@ -107,7 +103,7 @@ function insertMedia(markdown: string) {
         class="h-full min-h-0 overflow-auto rounded-md border p-4 md:block"
         :class="mobileView === 'preview' ? 'block' : 'hidden'"
       >
-        <MDC :value="previewContent" tag="div" class="prose dark:prose-invert max-w-none" />
+        <MDC :key="previewContent" :value="previewContent" tag="div" class="prose dark:prose-invert max-w-none" />
       </div>
     </div>
 
