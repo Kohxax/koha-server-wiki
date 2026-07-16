@@ -53,7 +53,7 @@ useHead({ title: () => page.value?.title ?? props.path })
         <MDCRenderer :body="body" :data="data" class="wiki-prose [&_img]:h-auto [&_img]:max-w-full" />
       </article>
       <aside class="order-2 space-y-6 text-sm">
-        <section v-if="toc?.links?.length" class="border p-4">
+        <section v-if="toc?.links?.length" class="border bg-muted/30 p-4 transition-colors hover:bg-muted/50">
           <h2 class="mb-3 font-semibold">目次</h2>
           <nav>
             <ul class="space-y-2">
@@ -63,7 +63,7 @@ useHead({ title: () => page.value?.title ?? props.path })
             </ul>
           </nav>
         </section>
-        <section class="border p-4 text-muted-foreground">
+        <section class="border bg-muted/30 p-4 text-muted-foreground">
           <div class="flex items-start gap-2">
             <HistoryIcon class="mt-0.5 size-4 shrink-0" />
             <p>最終更新: {{ page.updatedByUsername ?? "不明" }}<br>（{{ updatedAt }}）</p>

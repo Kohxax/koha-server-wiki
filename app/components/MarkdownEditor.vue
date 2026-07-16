@@ -64,7 +64,7 @@ function insertMedia(markdown: string) {
 
     <div class="grid min-h-0 flex-1 gap-4 md:grid-cols-2">
       <div class="flex min-h-0 flex-col border" :class="mobileView === 'edit' ? 'flex' : 'hidden md:flex'">
-        <div class="flex shrink-0 flex-wrap items-center gap-1 border-b p-1">
+        <div class="flex shrink-0 flex-wrap items-center gap-1 border-b bg-muted/40 p-1">
           <UiButton type="button" variant="ghost" size="sm" title="太字" @click="insertBold"><BoldIcon /></UiButton>
           <UiButton type="button" variant="ghost" size="sm" title="見出し" @click="insertHeading"><HeadingIcon /></UiButton>
           <UiButton type="button" variant="ghost" size="sm" title="外部リンク" @click="insertLink"><LinkIcon /></UiButton>
@@ -76,7 +76,7 @@ function insertMedia(markdown: string) {
         <UiTextarea ref="textareaRef" v-model="model" class="min-h-0 flex-1 resize-none border-0 font-mono" placeholder="Markdownで本文を入力" />
       </div>
       <div
-        class="min-h-0 overflow-auto border p-4"
+        class="min-h-0 overflow-auto border bg-muted/20 p-4"
         :class="mobileView === 'preview' ? 'block' : 'hidden md:block'"
       >
         <MDC :value="model" tag="div" class="wiki-prose" />
