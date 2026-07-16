@@ -41,11 +41,14 @@ useHead({ title: () => page.value?.title ?? props.path })
   <MDC v-else-if="page" :value="page.content" :partial="false" v-slot="{ body, data, toc }">
     <div v-if="body" class="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[minmax(0,48rem)_14rem] lg:justify-center">
       <article class="order-1 min-w-0">
-        <div class="mb-6 flex items-center justify-between gap-4">
-          <h1 class="text-2xl font-bold">{{ page.title }}</h1>
-          <UiButton v-if="canEdit" variant="outline" size="sm" as-child>
-            <NuxtLink :to="`/edit/${path}`">編集</NuxtLink>
-          </UiButton>
+        <div class="mb-8">
+          <div class="flex items-center justify-between gap-4 pb-4">
+            <h1 class="text-2xl font-bold">{{ page.title }}</h1>
+            <UiButton v-if="canEdit" variant="outline" size="sm" as-child>
+              <NuxtLink :to="`/edit/${path}`">編集</NuxtLink>
+            </UiButton>
+          </div>
+          <div class="h-0.5 bg-gradient-to-r from-primary via-primary/35 to-transparent" />
         </div>
         <MDCRenderer :body="body" :data="data" class="wiki-prose [&_img]:h-auto [&_img]:max-w-full" />
       </article>

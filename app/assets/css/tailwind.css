@@ -134,7 +134,15 @@
   }
 
   .wiki-prose :where(h1, h2, h3, h4, h5, h6) {
-    @apply scroll-mt-20 border-l-4 border-primary px-3 font-semibold tracking-tight text-foreground;
+    @apply scroll-mt-20 font-semibold tracking-tight text-foreground;
+  }
+
+  .wiki-prose :where(h1, h2, h3, h4, h5, h6)::after {
+    content: "";
+    display: block;
+    height: 2px;
+    margin-top: 0.5rem;
+    background: linear-gradient(to right, var(--primary), transparent);
   }
 
   .wiki-prose :where(h1) {
