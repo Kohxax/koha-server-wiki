@@ -59,11 +59,6 @@ function submitSearch() {
         </UiDropdownMenuTrigger>
         <UiDropdownMenuContent align="end">
           <UiDropdownMenuItem as-child>
-            <NuxtLink to="/admin/sidebar">
-              サイドバー設定
-            </NuxtLink>
-          </UiDropdownMenuItem>
-          <UiDropdownMenuItem as-child>
             <NuxtLink to="/admin/media">
               メディア管理
             </NuxtLink>
@@ -107,13 +102,19 @@ function submitSearch() {
       </UiDropdownMenu>
     </header>
     <div class="flex flex-1">
-      <aside class="hidden w-64 shrink-0 border-r md:block">
-        <UiScrollArea class="h-[calc(100vh-3.5rem)] p-4">
+      <aside class="hidden w-64 shrink-0 flex-col border-r md:flex">
+        <UiScrollArea class="min-h-0 flex-1 p-4">
           <SidebarTree v-if="sidebar?.tree.length" :nodes="sidebar.tree" />
           <p v-else class="text-sm text-muted-foreground">
             ページがまだありません
           </p>
         </UiScrollArea>
+        <NuxtLink v-if="canEdit" to="/admin/sidebar" class="border-t p-2">
+          <UiButton variant="ghost" size="sm" class="w-full justify-start" title="サイドバー設定">
+            <SettingsIcon />
+            サイドバー設定
+          </UiButton>
+        </NuxtLink>
       </aside>
       <main class="min-w-0 flex-1 p-6">
         <div class="page-content">
