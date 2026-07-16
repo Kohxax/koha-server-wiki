@@ -85,8 +85,8 @@ onBeforeUnmount(() => window.removeEventListener("message", onMessage))
 
 <template>
   <UiDialog v-model:open="open">
-    <UiDialogContent class="h-[90vh] max-w-[95vw] p-0 sm:max-w-[95vw]">
-      <UiDialogHeader class="p-4 pb-0">
+    <UiDialogContent class="flex h-[90vh] max-w-[95vw] flex-col p-0 sm:max-w-[95vw]">
+      <UiDialogHeader class="shrink-0 p-4 pb-0">
         <UiDialogTitle>図表エディタ (draw.io)</UiDialogTitle>
       </UiDialogHeader>
       <p v-if="errorMessage" class="px-4 text-sm text-destructive">
@@ -99,7 +99,7 @@ onBeforeUnmount(() => window.removeEventListener("message", onMessage))
         v-if="open"
         ref="iframeRef"
         :src="iframeSrc"
-        class="h-full w-full flex-1 border-0"
+        class="min-h-0 w-full flex-1 border-0"
         title="draw.io editor"
       />
     </UiDialogContent>
