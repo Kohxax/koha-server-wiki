@@ -7,6 +7,7 @@ interface TocEntry {
 }
 
 defineProps<{ entries: TocEntry[] }>()
+const emit = defineEmits<{ select: [id: string] }>()
 </script>
 
 <template>
@@ -16,8 +17,9 @@ defineProps<{ entries: TocEntry[] }>()
         :href="`#${entry.id}`"
         class="block text-muted-foreground transition-colors hover:text-primary"
         :class="{ 'border-l border-border pl-3': entry.depth > 2 }"
+        @click.prevent="emit('select', entry.id)"
       >{{ entry.text }}</a>
-      <TocTree v-if="entry.children?.length" :entries="entry.children" class="mt-2 ml-3" />
+      <TocTree v-if="entry.children?.length" :entries="entry.children" class="mt-2 ml-3" @select="emit('select', $event)" />
     </li>
   </ul>
 </template>

@@ -15,6 +15,14 @@ const canEdit = computed(() => user.value?.role === "editor" || user.value?.role
 const notFound = computed(() => error.value?.statusCode === 404)
 const updatedAt = computed(() => page.value?.updatedAt ? new Date(page.value.updatedAt).toLocaleString("ja-JP") : "")
 
+function scrollToHeading(id: string) {
+  const target = document.getElementById(id)
+  if (!target)
+    return
+  target.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" })
+  window.history.replaceState(null, "", `#${encodeURIComponent(id)}`)
+}
+
 useHead({ title: () => page.value?.title ?? props.path })
 </script>
 
@@ -56,7 +64,7 @@ useHead({ title: () => page.value?.title ?? props.path })
         <section v-if="toc?.links?.length" class="border bg-muted/30 p-4 transition-colors">
           <h2 class="mb-3 font-semibold">目次</h2>
           <nav>
-            <TocTree :entries="toc.links" />
+            <TocTree :entries="toc.links" @select="scrollToHeading" />
           </nav>
         </section>
         <section class="border bg-muted/30 p-4 text-muted-foreground">
