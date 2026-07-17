@@ -80,7 +80,7 @@ function insertMedia(markdown: string) {
           <UiButton type="button" variant="ghost" size="sm" title="画像" @click="mediaDialogOpen = true"><ImageIcon /></UiButton>
           <UiButton type="button" variant="ghost" size="sm" title="図表" @click="drawioDialogOpen = true"><ShapesIcon /></UiButton>
         </div>
-        <UiTextarea ref="textareaRef" v-model="model" class="min-h-0 flex-1 resize-none border-0 font-mono" placeholder="Markdownで本文を入力" />
+        <UiTextarea ref="textareaRef" v-model="model" class="min-h-0 flex-1 resize-none border-0 pb-[calc(100vh-10rem)] font-mono field-sizing-fixed" placeholder="Markdownで本文を入力" />
       </div>
       <div
         class="min-h-0 overflow-auto border bg-muted/20 p-4"
