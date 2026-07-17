@@ -6,12 +6,21 @@ test("finds pages by partial match in japanese title and content", async ({ page
   const path = `e2e-search-${Date.now()}`
   const uniqueWord = `拠点${Date.now()}`
 
-  await page.goto("/new")
-  await page.getByLabel("パス").fill(path)
-  await page.getByRole("button", { name: "次へ" }).click()
-  await page.getByLabel("タイトル").fill(`検索テスト${Date.now()}`)
-  await page.locator("textarea").first().fill(`このページには${uniqueWord}についての説明があります。`)
-  await page.getByRole("button", { name: "保存" }).click()
+  const createPage = await page.request.put(`/api/pages/${path}`, {
+    data: {
+      path,
+      title: `検索テスト${Date.now()}`,
+      content: `このページには${uniqueWord}についての説明があります。`,
+    },
+  })
+  expect(createPage.ok()).toBe(true)
+
+  await page.goto(`/wiki/${path}`)
+  await page.waitForTimeout(500)
+
+  await page.getByPlaceholder("検索...").fill(uniqueWord)
+  await expect(page.getByRole("option", { name: new RegExp(uniqueWord) }).first()).toBeVisible()
+  await page.getByRole("option", { name: new RegExp(uniqueWord) }).first().click()
   await expect(page).toHaveURL(`/wiki/${path}`)
 
   await page.getByPlaceholder("検索...").fill(uniqueWord)

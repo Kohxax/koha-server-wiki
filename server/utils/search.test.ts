@@ -8,6 +8,21 @@ describe("buildExcerpt", () => {
     expect(buildExcerpt("# 見出し\n\n**太字**の本文です", "本文")).not.toContain("**")
   })
 
+  it("keeps readable labels while removing image, link, and HTML markup", () => {
+    const excerpt = buildExcerpt(
+      '![拠点の画像](/uploads/base.png)\n[攻略ガイド](/wiki/guide)\n<div>HTMLの説明</div>',
+      "攻略",
+    )
+
+    expect(excerpt).toContain("拠点の画像")
+    expect(excerpt).toContain("攻略ガイド")
+    expect(excerpt).toContain("HTMLの説明")
+    expect(excerpt).not.toContain("/uploads/base.png")
+    expect(excerpt).not.toContain("/wiki/guide")
+    expect(excerpt).not.toContain("![")
+    expect(excerpt).not.toContain("<div>")
+  })
+
   it("centers the excerpt around the matched query", () => {
     const content = `${"あ".repeat(60)}拠点の説明${"い".repeat(60)}`
     const excerpt = buildExcerpt(content, "拠点", 10)

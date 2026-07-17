@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import { MoonIcon, PlusIcon, SearchIcon, SettingsIcon, SunIcon } from '@lucide/vue'
+import { onClickOutside, watchDebounced } from '@vueuse/core'
+
+interface SearchResult {
+  path: string
+  title: string
+  excerpt: string
+}
 
 const colorMode = useColorMode()
 const { loggedIn, user, clear } = useUserSession()
@@ -12,6 +19,52 @@ const isDark = computed({
 const canEdit = computed(() => user.value?.role === 'editor' || user.value?.role === 'admin')
 const isAdmin = computed(() => user.value?.role === 'admin')
 const searchQuery = ref('')
+const suggestions = ref<SearchResult[]>([])
+const suggestionsStatus = ref<'idle' | 'pending' | 'success' | 'error'>('idle')
+const suggestionsDismissed = ref(false)
+const selectedSuggestion = ref(-1)
+const searchContainer = ref<HTMLElement>()
+let searchRequestId = 0
+
+const showSuggestions = computed(() => !suggestionsDismissed.value && searchQuery.value.trim().length > 0)
+
+function linkTo(path: string) {
+  return path === 'home' ? '/' : `/wiki/${path}`
+}
+
+function closeSuggestions() {
+  suggestionsDismissed.value = true
+  selectedSuggestion.value = -1
+}
+
+onClickOutside(searchContainer, closeSuggestions)
+
+watchDebounced(searchQuery, async (value) => {
+  const q = value.trim()
+  const requestId = ++searchRequestId
+  selectedSuggestion.value = -1
+
+  if (!q) {
+    suggestions.value = []
+    suggestionsStatus.value = 'idle'
+    return
+  }
+
+  suggestionsStatus.value = 'pending'
+  try {
+    const results = await $fetch<SearchResult[]>('/api/search', { query: { q, limit: 5 } })
+    if (requestId === searchRequestId)
+      suggestions.value = results
+    if (requestId === searchRequestId)
+      suggestionsStatus.value = 'success'
+  }
+  catch {
+    if (requestId === searchRequestId) {
+      suggestions.value = []
+      suggestionsStatus.value = 'error'
+    }
+  }
+}, { debounce: 250 })
 
 async function logout() {
   await clear()
@@ -20,8 +73,49 @@ async function logout() {
 
 function submitSearch() {
   const q = searchQuery.value.trim()
-  if (q)
+  if (q) {
+    closeSuggestions()
     navigateTo(`/search?q=${encodeURIComponent(q)}`)
+  }
+}
+
+function selectSuggestion(result: SearchResult) {
+  closeSuggestions()
+  navigateTo(linkTo(result.path))
+}
+
+function handleSearchKeydown(event: KeyboardEvent) {
+  if (!showSuggestions.value)
+    return
+
+  if (event.key === 'Escape') {
+    closeSuggestions()
+    return
+  }
+
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    const result = suggestions.value[selectedSuggestion.value]
+    if (result)
+      selectSuggestion(result)
+    else
+      submitSearch()
+    return
+  }
+
+  if (!suggestions.value.length)
+    return
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault()
+    selectedSuggestion.value = (selectedSuggestion.value + 1) % suggestions.value.length
+  }
+  else if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    selectedSuggestion.value = selectedSuggestion.value < 0
+      ? suggestions.value.length - 1
+      : (selectedSuggestion.value - 1 + suggestions.value.length) % suggestions.value.length
+  }
 }
 </script>
 
@@ -32,9 +126,47 @@ function submitSearch() {
       <span class="hidden sm:inline">こは鯖wiki</span>
     </NuxtLink>
     <div class="flex min-w-0 flex-1 justify-center px-1 sm:px-4">
-      <div class="relative w-full max-w-md">
+      <div ref="searchContainer" class="relative w-full max-w-md">
         <SearchIcon class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-        <UiInput v-model="searchQuery" type="search" placeholder="検索..." class="pl-8" @keyup.enter="submitSearch" />
+        <UiInput
+          v-model="searchQuery"
+          type="search"
+          placeholder="検索..."
+          class="pl-8"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-controls="search-suggestions"
+          :aria-expanded="showSuggestions"
+          @focus="suggestionsDismissed = false"
+          @input="suggestionsDismissed = false"
+          @keydown="handleSearchKeydown"
+        />
+        <div
+          v-if="showSuggestions"
+          id="search-suggestions"
+          role="listbox"
+          class="supports-backdrop-filter:backdrop-blur-xs absolute z-50 mt-1 w-full border border-border bg-popover/95 text-popover-foreground shadow-md"
+        >
+          <div v-if="suggestionsStatus === 'pending'" class="px-3 py-2 text-xs text-muted-foreground">検索中...</div>
+          <template v-else-if="suggestionsStatus === 'success' && suggestions.length">
+            <button
+              v-for="(result, index) in suggestions"
+              :key="result.path"
+              type="button"
+              role="option"
+              :aria-selected="selectedSuggestion === index"
+              class="flex w-full flex-col items-start gap-0.5 border-b border-border px-3 py-2 text-left last:border-b-0 hover:bg-accent focus:bg-accent focus:outline-none"
+              :class="{ 'bg-accent': selectedSuggestion === index }"
+              @mousedown.prevent="selectSuggestion(result)"
+            >
+              <span class="text-sm font-medium">{{ result.title }}</span>
+              <span class="font-mono text-xs text-muted-foreground">{{ linkTo(result.path) }}</span>
+              <span v-if="result.excerpt" class="line-clamp-2 text-xs text-muted-foreground">{{ result.excerpt }}</span>
+            </button>
+          </template>
+          <p v-else-if="suggestionsStatus === 'success'" class="px-3 py-2 text-xs text-muted-foreground">該当するページが見つかりませんでした</p>
+          <p v-else-if="suggestionsStatus === 'error'" class="px-3 py-2 text-xs text-muted-foreground">候補を取得できませんでした</p>
+        </div>
       </div>
     </div>
     <NuxtLink v-if="canEdit" to="/new">
