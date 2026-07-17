@@ -22,7 +22,7 @@ const canEdit = computed(() => user.value?.role === 'editor' || user.value?.role
       @click="emit('toggle')"
     />
     <aside
-      class="app-sidebar fixed top-14 bottom-0 left-0 z-50 flex w-64 shrink-0 flex-col overflow-hidden border-r bg-background transition-[width,transform] duration-200 ease-out md:relative md:top-auto md:z-auto md:translate-x-0 md:bg-muted/20"
+      class="app-sidebar fixed top-14 bottom-0 left-0 z-50 flex w-64 shrink-0 flex-col overflow-hidden border-r bg-background transition-transform duration-300 ease-out md:relative md:top-auto md:z-auto md:translate-x-0 md:bg-muted/20"
       :class="props.open ? 'translate-x-0 md:w-64' : '-translate-x-full md:w-0'"
     >
       <div class="flex w-64 shrink-0 justify-end border-b p-2">
