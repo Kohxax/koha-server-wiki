@@ -11,7 +11,7 @@ test("create, edit with live preview, and save", async ({ page }) => {
 
   await expect(page).toHaveURL(`/edit/${path}`)
   await page.getByLabel("タイトル").fill("E2Eテストページ")
-  await page.locator("textarea").first().fill("# 最初の内容\n\n## H2見出し")
+  await page.locator("textarea").first().fill("# 最初の内容\n\n## H2見出し\n\n### H3見出し\n\n#### H4見出し")
 
   // The preview must be replaced with the current input, rather than showing a stale parse result.
   await expect(page.getByRole("heading", { name: "最初の内容" })).toBeVisible()
@@ -20,6 +20,8 @@ test("create, edit with live preview, and save", async ({ page }) => {
   await expect(page).toHaveURL(`/wiki/${path}`)
   await expect(page.getByRole("heading", { name: "E2Eテストページ" })).toBeVisible()
   await expect(page.getByRole("link", { name: "H2見出し" })).toBeVisible()
+  await expect(page.getByRole("link", { name: "H3見出し" })).toBeVisible()
+  await expect(page.getByRole("link", { name: "H4見出し" })).toBeVisible()
 
   await page.getByRole("link", { name: "編集" }).click()
   await expect(page).toHaveURL(`/edit/${path}`)
