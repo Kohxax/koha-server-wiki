@@ -4,8 +4,13 @@ import { parseMarkdown } from '@nuxtjs/mdc/runtime'
 
 const model = defineModel<string>({ required: true })
 
+const props = withDefaults(defineProps<{
+  view?: "edit" | "preview"
+}>(), {
+  view: "edit",
+})
+
 const textareaRef = ref<{ $el: HTMLTextAreaElement } | HTMLTextAreaElement | null>(null)
-const mobileView = ref<"edit" | "preview">("edit")
 const preview = shallowRef<any>()
 let previewTimer: ReturnType<typeof setTimeout> | undefined
 let previewRequest = 0
@@ -74,35 +79,27 @@ function insertMedia(markdown: string) {
 </script>
 
 <template>
-  <div class="flex min-h-0 flex-1 flex-col gap-2">
-    <div class="flex shrink-0 justify-end gap-1 md:hidden">
-      <UiButton type="button" size="sm" :variant="mobileView === 'edit' ? 'secondary' : 'ghost'" @click="mobileView = 'edit'">編集</UiButton>
-      <UiButton type="button" size="sm" :variant="mobileView === 'preview' ? 'secondary' : 'ghost'" @click="mobileView = 'preview'">プレビュー</UiButton>
-    </div>
-
-    <div class="grid min-h-0 flex-1 gap-4 md:grid-cols-2">
-      <div class="flex min-h-0 flex-col border" :class="mobileView === 'edit' ? 'flex' : 'hidden md:flex'">
-        <div class="flex shrink-0 flex-wrap items-center gap-1 border-b bg-muted/40 p-1">
-          <UiButton type="button" variant="ghost" size="sm" title="太字" @click="insertBold"><BoldIcon /></UiButton>
-          <UiButton type="button" variant="ghost" size="sm" title="見出し" @click="insertHeading"><HeadingIcon /></UiButton>
-          <UiButton type="button" variant="ghost" size="sm" title="外部リンク" @click="insertLink"><LinkIcon /></UiButton>
-          <UiButton type="button" variant="ghost" size="sm" title="内部ページリンク" @click="internalLinkDialogOpen = true"><LinkIcon /></UiButton>
-          <UiButton type="button" variant="ghost" size="sm" title="コードブロック" @click="insertCodeBlock"><CodeIcon /></UiButton>
-          <UiButton type="button" variant="ghost" size="sm" title="画像" @click="mediaDialogOpen = true"><ImageIcon /></UiButton>
-          <UiButton type="button" variant="ghost" size="sm" title="図表" @click="drawioDialogOpen = true"><ShapesIcon /></UiButton>
-        </div>
-        <UiTextarea ref="textareaRef" v-model="model" class="min-h-0 flex-1 resize-none border-0 pb-[calc(100vh-10rem)] font-mono field-sizing-fixed" placeholder="Markdownで本文を入力" />
+  <div class="flex min-h-0 flex-1 flex-col">
+    <div v-if="props.view === 'edit'" class="flex min-h-0 flex-1 flex-col border">
+      <div class="flex shrink-0 flex-wrap items-center gap-1 border-b bg-muted/40 p-1">
+        <UiButton type="button" variant="ghost" size="sm" title="太字" @click="insertBold"><BoldIcon /></UiButton>
+        <UiButton type="button" variant="ghost" size="sm" title="見出し" @click="insertHeading"><HeadingIcon /></UiButton>
+        <UiButton type="button" variant="ghost" size="sm" title="外部リンク" @click="insertLink"><LinkIcon /></UiButton>
+        <UiButton type="button" variant="ghost" size="sm" title="内部ページリンク" @click="internalLinkDialogOpen = true"><LinkIcon /></UiButton>
+        <UiButton type="button" variant="ghost" size="sm" title="コードブロック" @click="insertCodeBlock"><CodeIcon /></UiButton>
+        <UiButton type="button" variant="ghost" size="sm" title="画像" @click="mediaDialogOpen = true"><ImageIcon /></UiButton>
+        <UiButton type="button" variant="ghost" size="sm" title="図表" @click="drawioDialogOpen = true"><ShapesIcon /></UiButton>
       </div>
-      <div
-        class="min-h-0 overflow-auto border bg-muted/20 p-4"
-        :class="mobileView === 'preview' ? 'block' : 'hidden md:block'"
-      >
-        <MDCRenderer v-if="preview?.body" :body="preview.body" :data="preview.data" class="wiki-prose" />
+      <div class="min-h-0 flex-1 overflow-auto">
+        <UiTextarea ref="textareaRef" v-model="model" class="box-border block min-h-full resize-none border-0 pb-[calc(100vh-10rem)] font-mono" placeholder="Markdownで本文を入力" />
       </div>
     </div>
+    <div v-else class="min-h-0 flex-1 overflow-auto border bg-muted/20 p-4">
+      <MDCRenderer v-if="preview?.body" :body="preview.body" :data="preview.data" class="wiki-prose" />
+    </div>
 
-    <MediaLibraryDialog v-model:open="mediaDialogOpen" @insert="insertMedia" />
-    <DrawioDialog v-model:open="drawioDialogOpen" @insert="insertMedia" />
-    <InternalLinkDialog v-model:open="internalLinkDialogOpen" @insert="insertMedia" />
+    <MediaLibraryDialog v-if="props.view === 'edit'" v-model:open="mediaDialogOpen" @insert="insertMedia" />
+    <DrawioDialog v-if="props.view === 'edit'" v-model:open="drawioDialogOpen" @insert="insertMedia" />
+    <InternalLinkDialog v-if="props.view === 'edit'" v-model:open="internalLinkDialogOpen" @insert="insertMedia" />
   </div>
 </template>
