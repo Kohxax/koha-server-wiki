@@ -1,20 +1,49 @@
 services:
   app:
     build: .
+    image: koha-server-wiki:local
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    read_only: true
+    tmpfs:
+      - /tmp
     environment:
       NUXT_SESSION_PASSWORD: ${NUXT_SESSION_PASSWORD}
       NUXT_OAUTH_DISCORD_CLIENT_ID: ${NUXT_OAUTH_DISCORD_CLIENT_ID}
       NUXT_OAUTH_DISCORD_CLIENT_SECRET: ${NUXT_OAUTH_DISCORD_CLIENT_SECRET}
       NUXT_ADMIN_DISCORD_IDS: ${NUXT_ADMIN_DISCORD_IDS}
-      DATABASE_URL: postgres://${POSTGRES_USER:-koha}:${POSTGRES_PASSWORD:-koha}@db:5432/${POSTGRES_DB:-koha_wiki}
+      DATABASE_URL: postgres://${POSTGRES_USER:?POSTGRES_USER must be set}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@db:5432/${POSTGRES_DB:?POSTGRES_DB must be set}
       UPLOAD_DIR: /data/uploads
       # NUXT_DEV_AUTH_BYPASS is intentionally never referenced here so it can never
       # leak into the containerized production app, even if it's set in the local .env.
     volumes:
       - uploads:/data/uploads
+    depends_on:
+      init-uploads:
+        condition: service_completed_successfully
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(response => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+  init-uploads:
+    image: koha-server-wiki:local
+    user: root
+    command: ["/bin/sh", "-c", "mkdir -p /data/uploads && chown -R app:app /data/uploads"]
+    volumes:
+      - uploads:/data/uploads
+
+  migrate:
+    image: koha-server-wiki:local
+    read_only: true
+    tmpfs:
+      - /tmp
+    command: ["node_modules/.bin/tsx", "server/database/migrate.ts"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     depends_on:
       db:
         condition: service_healthy
@@ -22,16 +51,14 @@ services:
   db:
     image: postgres:17-alpine
     restart: unless-stopped
-    ports:
-      - "5432:5432"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-koha}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-koha}
-      POSTGRES_DB: ${POSTGRES_DB:-koha_wiki}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-koha} -d ${POSTGRES_DB:-koha_wiki}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -43,7 +70,8 @@ services:
     environment:
       TUNNEL_TOKEN: ${TUNNEL_TOKEN}
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     profiles: [prod]
 
 volumes:

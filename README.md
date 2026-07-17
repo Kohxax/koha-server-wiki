@@ -47,7 +47,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 DBだけコンテナで起動し、アプリはホスト上で直接動かす(ホットリロードのため):
 
 ```bash
-docker compose up -d db
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db
 pnpm db:migrate
 pnpm dev            # http://localhost:3000
 ```
@@ -55,12 +55,26 @@ pnpm dev            # http://localhost:3000
 ### 5. 本番起動 (Docker Compose)
 
 ```bash
-docker compose up --build -d app db
+docker compose up --build -d
 # Cloudflare Tunnelも含めて公開する場合
 docker compose --profile prod up --build -d
 ```
 
-`app` コンテナは起動時に自動的にDBマイグレーションを実行してからサーバーを起動します(`docker-entrypoint.sh`)。
+本番Composeはホストへアプリ・DBポートを公開しません。`migrate` が一度だけ成功し、`/api/health` がDBとアップロード領域を確認してから、アプリとCloudflare Tunnelが起動します。ローカルからポート公開が必要な場合だけ `docker-compose.dev.yml` を重ねます。
+
+## バックアップと復旧
+
+バックアップは同一世代にそろえるため、書き込みを止めてからDBとuploadsを続けて保存します。
+
+```bash
+mkdir -p backups
+docker compose stop app cloudflared
+docker compose exec -T db pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" > backups/wiki.sql
+docker compose cp app:/data/uploads backups/uploads
+docker compose up -d app
+```
+
+復旧時はComposeを停止し、DBボリュームを削除せずにダンプを復元します。uploadsも同じ世代のバックアップで置き換えた後、`docker compose up -d` を実行してください。
 
 ## 開発用認証バイパス
 

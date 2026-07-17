@@ -12,14 +12,12 @@ RUN pnpm build
 
 FROM base AS runner
 ENV NODE_ENV=production
+RUN groupadd --gid 10001 app && useradd --uid 10001 --gid app --create-home --shell /usr/sbin/nologin app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/.output ./.output
 COPY --from=build /app/server/database ./server/database
-COPY --from=build /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=build /app/package.json ./package.json
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 3000
-ENTRYPOINT ["docker-entrypoint.sh"]
+USER app
 CMD ["node", ".output/server/index.mjs"]
