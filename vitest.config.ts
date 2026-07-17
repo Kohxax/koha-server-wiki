@@ -1,5 +1,13 @@
+import process from "node:process"
 import { fileURLToPath } from "node:url"
 import { defineConfig } from "vitest/config"
+
+try {
+  process.loadEnvFile(".env")
+}
+catch {
+  // CI may inject TEST_DATABASE_URL directly.
+}
 
 export default defineConfig({
   test: {
