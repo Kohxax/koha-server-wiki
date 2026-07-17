@@ -4,10 +4,9 @@ import { drizzle } from "drizzle-orm/postgres-js"
 import postgres from "postgres"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import * as schema from "./schema"
+import { requireTestDatabaseUrl } from "./test-url"
 
-const url = process.env.TEST_DATABASE_URL
-if (!url)
-  throw new Error("TEST_DATABASE_URL is not set")
+const url = requireTestDatabaseUrl(process.env.TEST_DATABASE_URL)
 
 const client = postgres(url)
 const db = drizzle(client, { schema })

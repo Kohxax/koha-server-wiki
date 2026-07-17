@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  modules: ['shadcn-nuxt', '@nuxt/fonts', '@nuxtjs/color-mode', 'nuxt-auth-utils', '@nuxtjs/mdc'],
+  modules: ['shadcn-nuxt', '@nuxt/fonts', '@nuxtjs/color-mode', 'nuxt-auth-utils', '@nuxtjs/mdc', '@nuxt/eslint'],
   app: {
     head: {
       titleTemplate: 'こは鯖wiki | %s',
