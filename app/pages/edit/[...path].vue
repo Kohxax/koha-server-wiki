@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Page } from "~~/server/database/schema"
+import type { PageDto } from "~~/shared/types/api"
+import { wikiPageUrl } from "~~/shared/utils/wiki-url"
 
 definePageMeta({ middleware: ["require-editor"] })
 
@@ -9,7 +10,7 @@ const path = computed(() => {
   return Array.isArray(raw) ? raw.join("/") : (raw ?? "")
 })
 
-const { data: existing } = await useFetch<Page>(() => `/api/pages/${path.value}`, {
+const { data: existing } = await useFetch<PageDto>(() => `/api/pages/${path.value}`, {
   key: () => `page:${path.value}`,
 })
 
@@ -33,7 +34,7 @@ async function save() {
   saving.value = true
   errorMessage.value = ""
   try {
-    const savedPage = await $fetch<Page>(`/api/pages/${path.value}`, {
+    const savedPage = await $fetch<PageDto>(`/api/pages/${path.value}`, {
       method: "PUT",
       body: { path: pagePath.value, title: title.value, description: description.value, content: content.value },
     })
@@ -45,7 +46,7 @@ async function save() {
     clearNuxtData(`page:${path.value}`)
     clearNuxtData(`page:${savedPage.path}`)
     await Promise.all([refreshNuxtData("sidebar"), refreshNuxtData("editor-page-links")])
-    await navigateTo(savedPage.path === "home" ? "/" : `/wiki/${savedPage.path}`)
+    await navigateTo(wikiPageUrl(savedPage.path))
   } catch {
     errorMessage.value = "保存に失敗しました"
   } finally {
@@ -70,7 +71,7 @@ function handleLeave(leave: boolean) {
 }
 
 async function cancel() {
-  await navigateTo(path.value === "home" ? "/" : `/wiki/${path.value}`)
+  await navigateTo(wikiPageUrl(path.value))
 }
 
 function handleBeforeUnload(event: BeforeUnloadEvent) {

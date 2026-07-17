@@ -1,13 +1,7 @@
 <script setup lang="ts">
 import { ChevronDownIcon } from "@lucide/vue"
-import type { SidebarIconName } from "~~/shared/utils/sidebar-icons"
-
-interface TreeNode {
-  label: string
-  path?: string
-  icon?: SidebarIconName
-  children: TreeNode[]
-}
+import type { TreeNode } from "~~/shared/types/api"
+import { wikiPageUrl } from "~~/shared/utils/wiki-url"
 
 defineProps<{ nodes: TreeNode[] }>()
 
@@ -26,9 +20,6 @@ function toggleExpanded(node: TreeNode) {
   expanded.value[key] = !isExpanded(node)
 }
 
-function linkTo(path: string) {
-  return path === "home" ? "/" : `/wiki/${path}`
-}
 </script>
 
 <template>
@@ -36,7 +27,7 @@ function linkTo(path: string) {
     <li v-for="node in nodes" :key="node.path ?? node.label">
       <NuxtLink
         v-if="node.path"
-        :to="linkTo(node.path)"
+        :to="wikiPageUrl(node.path)"
         class="flex items-center gap-2 border-l-2 border-transparent px-2 py-1 hover:bg-muted"
         active-class="border-primary bg-primary/10 font-medium text-primary"
       >

@@ -1,4 +1,4 @@
-export type Role = "admin" | "editor" | "viewer"
+import type { Role } from "../types/api"
 
 export function canEdit(role: Role | null | undefined): boolean {
   return role === "editor" || role === "admin"

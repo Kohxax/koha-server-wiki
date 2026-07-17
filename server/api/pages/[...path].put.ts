@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm"
 import { z } from "zod"
+import type { TreeNode } from "../../../shared/types/api"
+import { isValidPagePath, normalizePagePath, pagePathSchema } from "../../../shared/utils/page-path"
 import { useDb } from "../../database/client"
 import { pageRevisions, pages, settings } from "../../database/schema"
-import { pagePathSchema } from "../../utils/path"
 import { replacePagePathInTree } from "../../utils/sidebar-tree"
-import type { TreeNode } from "../../utils/tree"
 
 const bodySchema = z.object({
   path: pagePathSchema.optional(),

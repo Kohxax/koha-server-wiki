@@ -2,7 +2,7 @@
 import {
   ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, ArrowUpIcon, XIcon,
 } from "@lucide/vue"
-import type { TreeNode } from "~~/server/utils/tree"
+import type { SidebarDto, TreeNode } from "~~/shared/types/api"
 import { sidebarIconOptions, type SidebarIconName } from "~~/shared/utils/sidebar-icons"
 import {
   indentNode,
@@ -16,9 +16,7 @@ import {
 
 definePageMeta({ middleware: ["require-editor"] })
 
-interface SidebarResponse { mode: "auto" | "manual", tree: TreeNode[], manualTree: TreeNode[] }
-
-const { data: sidebar, refresh } = await useFetch<SidebarResponse>("/api/sidebar", { key: "admin-sidebar" })
+const { data: sidebar, refresh } = await useFetch<SidebarDto>("/api/sidebar", { key: "admin-sidebar" })
 const { data: allPagesTree } = await useFetch<TreeNode[]>("/api/pages/tree", { key: "admin-sidebar-pages" })
 
 const mode = ref<"auto" | "manual">(sidebar.value?.mode ?? "auto")

@@ -2,16 +2,11 @@
 import { FolderCogIcon, ImageIcon, LayoutDashboardIcon, UsersIcon, WaypointsIcon } from "@lucide/vue"
 import type { Component } from "vue"
 import { visibleSettingsMenu, type SettingsIcon } from "~/lib/settings-menu"
-
-interface Summary {
-  pageCount: number
-  mediaCount: number
-  userCount?: number
-  recentPages: { path: string, title: string, updatedAt: string, username: string | null }[]
-}
+import type { SettingsSummaryDto } from "~~/shared/types/api"
+import { wikiPageUrl } from "~~/shared/utils/wiki-url"
 
 const { user } = useUserSession()
-const { data: summary } = await useFetch<Summary>("/api/settings/summary", { key: "settings-summary" })
+const { data: summary } = await useFetch<SettingsSummaryDto>("/api/settings/summary", { key: "settings-summary" })
 const menu = computed(() => visibleSettingsMenu(user.value?.role).filter(item => item.id !== "overview"))
 
 const icons: Record<SettingsIcon, Component> = {
@@ -20,10 +15,6 @@ const icons: Record<SettingsIcon, Component> = {
   sidebar: FolderCogIcon,
   media: ImageIcon,
   users: UsersIcon,
-}
-
-function pageUrl(path: string) {
-  return path === "home" ? "/" : `/wiki/${path}`
 }
 
 function formatDate(value: string) {
@@ -79,7 +70,7 @@ useHead({ title: "設定" })
           <ul v-if="summary?.recentPages.length" class="divide-y">
             <li v-for="page in summary.recentPages" :key="page.path" class="flex flex-wrap items-center justify-between gap-2 p-4">
               <div>
-                <NuxtLink :to="pageUrl(page.path)" class="font-medium hover:underline">{{ page.title }}</NuxtLink>
+                <NuxtLink :to="wikiPageUrl(page.path)" class="font-medium hover:underline">{{ page.title }}</NuxtLink>
                 <p class="font-mono text-xs text-muted-foreground">{{ page.path }}</p>
               </div>
               <p class="text-right text-xs text-muted-foreground">

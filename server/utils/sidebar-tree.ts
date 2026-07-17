@@ -1,4 +1,4 @@
-import type { TreeNode } from "./tree"
+import type { TreeNode } from "../../shared/types/api"
 
 export function replacePagePathInTree(nodes: TreeNode[], previousPath: string, nextPath: string): TreeNode[] {
   return nodes.map(node => ({

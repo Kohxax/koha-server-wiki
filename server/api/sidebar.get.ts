@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm"
 import { useDb } from "../database/client"
 import { pages, settings } from "../database/schema"
-import type { TreeNode } from "../utils/tree"
+import type { TreeNode } from "../../shared/types/api"
 
 export default defineEventHandler(async () => {
   const db = useDb()

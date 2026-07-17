@@ -1,4 +1,4 @@
-import type { TreeNode } from "../../server/utils/tree"
+import type { TreeNode } from "../types/api"
 import type { SidebarIconName } from "./sidebar-icons"
 
 export interface OutlineNode {

@@ -1,11 +1,4 @@
-import type { SidebarIconName } from "../../shared/utils/sidebar-icons"
-
-export interface TreeNode {
-  label: string
-  path?: string
-  icon?: SidebarIconName
-  children: TreeNode[]
-}
+import type { TreeNode } from "../../shared/types/api"
 
 interface TreeBuilderNode {
   segment: string

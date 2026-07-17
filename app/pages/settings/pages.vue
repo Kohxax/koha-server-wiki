@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PlusIcon } from "@lucide/vue"
-import type { TreeNode } from "~~/server/utils/tree"
+import type { TreeNode } from "~~/shared/types/api"
 
 definePageMeta({ middleware: ["require-editor"] })
 

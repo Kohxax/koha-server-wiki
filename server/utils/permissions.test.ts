@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { canAdmin, canEdit } from "./permissions"
+import { canAdmin, canEdit } from "../../shared/utils/permissions"
 
 describe("canEdit", () => {
   it("allows editor and admin", () => {

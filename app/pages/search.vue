@@ -1,21 +1,14 @@
 <script setup lang="ts">
-interface SearchResult {
-  path: string
-  title: string
-  excerpt: string
-}
+import type { SearchResultDto } from "~~/shared/types/api"
+import { wikiPageUrl } from "~~/shared/utils/wiki-url"
 
 const route = useRoute()
 const q = computed(() => (route.query.q as string | undefined) ?? "")
 
-const { data: results, status } = await useFetch<SearchResult[]>("/api/search", {
+const { data: results, status } = await useFetch<SearchResultDto[]>("/api/search", {
   key: () => `search:${q.value}`,
   query: { q },
 })
-
-function linkTo(path: string) {
-  return path === "home" ? "/" : `/wiki/${path}`
-}
 
 useHead({ title: () => `検索: ${q.value}` })
 </script>
@@ -33,7 +26,7 @@ useHead({ title: () => `検索: ${q.value}` })
 
     <ul v-else-if="results && results.length > 0" class="space-y-4">
       <li v-for="result in results" :key="result.path">
-        <NuxtLink :to="linkTo(result.path)" class="text-lg font-medium hover:underline">
+        <NuxtLink :to="wikiPageUrl(result.path)" class="text-lg font-medium hover:underline">
           {{ result.title }}
         </NuxtLink>
         <p class="text-sm text-muted-foreground">

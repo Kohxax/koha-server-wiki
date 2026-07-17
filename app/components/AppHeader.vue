@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import { MoonIcon, PlusIcon, SearchIcon, SettingsIcon, SunIcon } from '@lucide/vue'
 import { onClickOutside, watchDebounced } from '@vueuse/core'
-
-interface SearchResult {
-  path: string
-  title: string
-  excerpt: string
-}
+import type { SearchResultDto } from '~~/shared/types/api'
+import { wikiPageUrl } from '~~/shared/utils/wiki-url'
 
 const colorMode = useColorMode()
 const { loggedIn, user, clear } = useUserSession()
@@ -18,7 +14,7 @@ const isDark = computed({
 
 const canEdit = computed(() => user.value?.role === 'editor' || user.value?.role === 'admin')
 const searchQuery = ref('')
-const suggestions = ref<SearchResult[]>([])
+const suggestions = ref<SearchResultDto[]>([])
 const suggestionsStatus = ref<'idle' | 'pending' | 'success' | 'error'>('idle')
 const suggestionsDismissed = ref(false)
 const selectedSuggestion = ref(-1)
@@ -26,10 +22,6 @@ const searchContainer = ref<HTMLElement>()
 let searchRequestId = 0
 
 const showSuggestions = computed(() => !suggestionsDismissed.value && searchQuery.value.trim().length > 0)
-
-function linkTo(path: string) {
-  return path === 'home' ? '/' : `/wiki/${path}`
-}
 
 function closeSuggestions() {
   suggestionsDismissed.value = true
@@ -51,7 +43,7 @@ watchDebounced(searchQuery, async (value) => {
 
   suggestionsStatus.value = 'pending'
   try {
-    const results = await $fetch<SearchResult[]>('/api/search', { query: { q, limit: 5 } })
+    const results = await $fetch<SearchResultDto[]>('/api/search', { query: { q, limit: 5 } })
     if (requestId === searchRequestId)
       suggestions.value = results
     if (requestId === searchRequestId)
@@ -78,9 +70,9 @@ function submitSearch() {
   }
 }
 
-function selectSuggestion(result: SearchResult) {
+function selectSuggestion(result: SearchResultDto) {
   closeSuggestions()
-  navigateTo(linkTo(result.path))
+  navigateTo(wikiPageUrl(result.path))
 }
 
 function handleSearchKeydown(event: KeyboardEvent) {
@@ -159,7 +151,7 @@ function handleSearchKeydown(event: KeyboardEvent) {
               @mousedown.prevent="selectSuggestion(result)"
             >
               <span class="text-sm font-medium">{{ result.title }}</span>
-              <span class="font-mono text-xs text-muted-foreground">{{ linkTo(result.path) }}</span>
+              <span class="font-mono text-xs text-muted-foreground">{{ wikiPageUrl(result.path) }}</span>
               <span v-if="result.excerpt" class="line-clamp-2 text-xs text-muted-foreground">{{ result.excerpt }}</span>
             </button>
           </template>

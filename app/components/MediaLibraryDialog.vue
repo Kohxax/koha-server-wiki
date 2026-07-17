@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { Media } from "~~/server/database/schema"
+import type { MediaDto } from "~~/shared/types/api"
 
 const open = defineModel<boolean>("open", { default: false })
 const emit = defineEmits<{ insert: [markdown: string] }>()
 
-const { data: items, refresh } = await useFetch<Media[]>("/api/media", {
+const { data: items, refresh } = await useFetch<MediaDto[]>("/api/media", {
   key: "media-library",
   immediate: false,
 })
@@ -43,7 +43,7 @@ function onDrop(event: DragEvent) {
   uploadFiles(event.dataTransfer?.files ?? null)
 }
 
-function selectItem(item: Media) {
+function selectItem(item: MediaDto) {
   emit("insert", `![${item.originalName}](/uploads/${item.filename})`)
   open.value = false
 }
@@ -52,7 +52,7 @@ const drawioDialogOpen = ref(false)
 const editingMediaId = ref<number | undefined>(undefined)
 const editingXml = ref("")
 
-async function editDiagram(item: Media) {
+async function editDiagram(item: MediaDto) {
   editingXml.value = await $fetch<string>(`/uploads/${item.filename}`, { responseType: "text" })
   editingMediaId.value = item.id
   drawioDialogOpen.value = true

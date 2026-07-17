@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { HistoryIcon } from "@lucide/vue"
-import type { Page } from "~~/server/database/schema"
+import type { PageDetailDto } from "~~/shared/types/api"
 
 const props = defineProps<{ path: string }>()
 const { user } = useUserSession()
 
-type PageWithUpdater = Page & { updatedByUsername: string | null }
-
-const { data: page, status, error } = await useFetch<PageWithUpdater>(() => `/api/pages/${props.path}`, {
+const { data: page, status, error } = await useFetch<PageDetailDto>(() => `/api/pages/${props.path}`, {
   key: () => `page:${props.path}`,
 })
 

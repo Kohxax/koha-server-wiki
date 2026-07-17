@@ -1,15 +1,11 @@
 <script setup lang="ts">
 import { MenuIcon, PanelLeftCloseIcon, PanelLeftOpenIcon } from '@lucide/vue'
-import type { TreeNode } from '~~/server/utils/tree'
-
-interface SidebarResponse {
-  tree: TreeNode[]
-}
+import type { SidebarDto } from '~~/shared/types/api'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ toggle: [] }>()
 
-const { data: sidebar } = await useFetch<SidebarResponse>('/api/sidebar', { key: 'sidebar' })
+const { data: sidebar } = await useFetch<SidebarDto>('/api/sidebar', { key: 'sidebar' })
 </script>
 
 <template>

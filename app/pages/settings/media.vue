@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import type { Media } from "~~/server/database/schema"
+import type { MediaDto } from "~~/shared/types/api"
 
 definePageMeta({ middleware: ["require-editor"] })
 
-const { data: items, refresh } = await useFetch<Media[]>("/api/media", { key: "admin-media" })
+const { data: items, refresh } = await useFetch<MediaDto[]>("/api/media", { key: "admin-media" })
 const deletingId = ref<number | null>(null)
-const itemToDelete = ref<Media | null>(null)
+const itemToDelete = ref<MediaDto | null>(null)
 
 useHead({ title: "メディア管理" })
 
-function requestRemove(item: Media) {
+function requestRemove(item: MediaDto) {
   itemToDelete.value = item
 }
 

@@ -1,4 +1,6 @@
-export type SettingsRole = "viewer" | "editor" | "admin"
+import type { Role } from "~~/shared/types/api"
+
+export type SettingsRole = Role
 export type SettingsIcon = "dashboard" | "pages" | "sidebar" | "media" | "users"
 
 export interface SettingsMenuItem {

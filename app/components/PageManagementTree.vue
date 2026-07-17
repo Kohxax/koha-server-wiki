@@ -2,7 +2,8 @@
 import {
   ChevronDownIcon, ExternalLinkIcon, FileIcon, FilePenLineIcon, FolderIcon, Trash2Icon,
 } from "@lucide/vue"
-import type { TreeNode } from "~~/server/utils/tree"
+import type { TreeNode } from "~~/shared/types/api"
+import { wikiPageUrl } from "~~/shared/utils/wiki-url"
 
 const props = withDefaults(defineProps<{
   nodes: TreeNode[]
@@ -32,9 +33,6 @@ function toggleExpanded(node: TreeNode) {
   expanded.value[key] = !isExpanded(node)
 }
 
-function pageUrl(path: string) {
-  return path === "home" ? "/" : `/wiki/${path}`
-}
 </script>
 
 <template>
@@ -64,7 +62,7 @@ function pageUrl(path: string) {
           </div>
         </div>
         <div v-if="node.path" class="flex shrink-0 items-center gap-1">
-          <NuxtLink :to="pageUrl(node.path)">
+          <NuxtLink :to="wikiPageUrl(node.path)">
             <UiButton variant="ghost" size="icon-sm" :aria-label="`${node.label}を閲覧`" title="閲覧"><ExternalLinkIcon /></UiButton>
           </NuxtLink>
           <NuxtLink :to="`/edit/${node.path}`">

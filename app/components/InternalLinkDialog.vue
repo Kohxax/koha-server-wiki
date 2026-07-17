@@ -1,9 +1,6 @@
 <script setup lang="ts">
-interface TreeNode {
-  label: string
-  path?: string
-  children: TreeNode[]
-}
+import type { TreeNode } from '~~/shared/types/api'
+import { wikiPageUrl } from '~~/shared/utils/wiki-url'
 
 const open = defineModel<boolean>('open', { required: true })
 const emit = defineEmits<{ insert: [markdown: string] }>()
@@ -27,7 +24,7 @@ const pages = computed(() => {
 })
 
 function insertPage(page: { label: string, path: string }) {
-  const href = page.path === 'home' ? '/' : `/wiki/${page.path}`
+  const href = wikiPageUrl(page.path)
   emit('insert', `[${page.label}](${href})`)
   open.value = false
   query.value = ''
@@ -45,7 +42,7 @@ function insertPage(page: { label: string, path: string }) {
       <div class="max-h-72 overflow-y-auto border">
         <button v-for="page in pages" :key="page.path" type="button" class="flex w-full flex-col items-start gap-0.5 border-b px-3 py-2 text-left hover:bg-muted last:border-b-0" @click="insertPage(page)">
           <span class="font-medium">{{ page.label }}</span>
-          <span class="font-mono text-xs text-muted-foreground">{{ page.path === 'home' ? '/' : `/wiki/${page.path}` }}</span>
+          <span class="font-mono text-xs text-muted-foreground">{{ wikiPageUrl(page.path) }}</span>
         </button>
         <p v-if="!pages.length" class="p-4 text-sm text-muted-foreground">該当するページがありません</p>
       </div>

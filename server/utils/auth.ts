@@ -4,7 +4,7 @@ import { createError } from "h3"
 import { useDb } from "../database/client"
 import { users } from "../database/schema"
 import type { User } from "../database/schema"
-import { canAdmin, canEdit } from "./permissions"
+import { canAdmin, canEdit } from "../../shared/utils/permissions"
 
 async function currentDbUser(event: H3Event): Promise<User> {
   const session = await requireUserSession(event)

@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import type { User } from "~~/server/database/schema"
+import type { Role, UserDto } from "~~/shared/types/api"
 
 definePageMeta({ middleware: ["require-admin"] })
 
 const { user: currentUser } = useUserSession()
-const { data: users, refresh } = await useFetch<User[]>("/api/admin/users", { key: "admin-users" })
+const { data: users, refresh } = await useFetch<UserDto[]>("/api/admin/users", { key: "admin-users" })
 
 const updatingId = ref<number | null>(null)
 const roles = ["viewer", "editor", "admin"] as const
 
 useHead({ title: "ユーザー管理" })
 
-async function changeRole(target: User, role: typeof roles[number]) {
+async function changeRole(target: UserDto, role: Role) {
   if (role === target.role)
     return
   updatingId.value = target.id
