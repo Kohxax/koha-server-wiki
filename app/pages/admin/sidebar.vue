@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import {
-  BookOpenIcon, CircuitBoardIcon, CodeIcon, CogIcon, CpuIcon, DatabaseIcon, FileTextIcon,
-  FolderIcon, HammerIcon, HardHatIcon, InfoIcon, LightbulbIcon, MapIcon, NetworkIcon,
-  PackageIcon, RocketIcon, ServerIcon, ShieldIcon, TerminalIcon, WrenchIcon, XIcon,
+  ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, ArrowUpIcon, BookOpenIcon, CircuitBoardIcon,
+  CodeIcon, CogIcon, CpuIcon, DatabaseIcon, FileTextIcon, FolderIcon, HammerIcon, HardHatIcon,
+  InfoIcon, LightbulbIcon, MapIcon, NetworkIcon, PackageIcon, RocketIcon, ServerIcon, ShieldIcon,
+  TerminalIcon, WrenchIcon, XIcon,
 } from "@lucide/vue"
 import type { Component } from "vue"
 import type { TreeNode } from "~~/server/utils/tree"
