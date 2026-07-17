@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises"
+import { unlink } from "node:fs/promises"
 import { join } from "node:path"
 import sharp from "sharp"
 import { useDb } from "../../database/client"
@@ -35,28 +35,40 @@ export default defineEventHandler(async (event) => {
     const text = filePart.data.toString("utf8")
     if (!isSafeSvg(text, { allowForeignObject: kind === "diagram" }))
       throw createError({ statusCode: 422, statusMessage: "安全でないSVGです" })
-  } else if (mime !== "image/gif") {
-    const resized = await sharp(filePart.data)
-      .resize({ width: MAX_WIDTH, withoutEnlargement: true })
-      .webp()
-      .toBuffer()
-    outputBuffer = resized
-    outputMime = "image/webp"
-    ext = "webp"
+  } else {
+    try {
+      const image = sharp(filePart.data, { animated: mime === "image/gif" })
+      const metadata = await image.metadata()
+      if (metadata.format !== mime.slice("image/".length))
+        throw new Error("MIME does not match image content")
+      if (mime !== "image/gif") {
+        outputBuffer = await image.resize({ width: MAX_WIDTH, withoutEnlargement: true }).webp().toBuffer()
+        outputMime = "image/webp"
+        ext = "webp"
+      }
+    } catch {
+      throw createError({ statusCode: 415, statusMessage: "画像データがファイル形式と一致しません" })
+    }
   }
 
   const filename = generateFilename(ext)
-  await writeFile(join(uploadDir(), filename), outputBuffer)
+  await writeUploadAtomically(filename, outputBuffer)
 
   const db = useDb()
-  const [created] = await db.insert(media).values({
-    filename,
-    originalName: filePart.filename,
-    mime: outputMime,
-    size: outputBuffer.byteLength,
-    kind,
-    uploadedBy: user.id,
-  }).returning()
+  let created
+  try {
+    [created] = await db.insert(media).values({
+      filename,
+      originalName: filePart.filename,
+      mime: outputMime,
+      size: outputBuffer.byteLength,
+      kind,
+      uploadedBy: user.id,
+    }).returning()
+  } catch (error) {
+    await unlink(join(uploadDir(), filename)).catch(() => {})
+    throw error
+  }
 
   if (!created)
     throw new Error("Failed to save media")

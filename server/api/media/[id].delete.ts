@@ -1,8 +1,8 @@
-import { unlink } from "node:fs/promises"
+import { readFile, unlink, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { eq } from "drizzle-orm"
+import { eq, ilike } from "drizzle-orm"
 import { useDb } from "../../database/client"
-import { media } from "../../database/schema"
+import { media, pages } from "../../database/schema"
 
 export default defineEventHandler(async (event) => {
   await requireEditor(event)
@@ -17,9 +17,23 @@ export default defineEventHandler(async (event) => {
   if (!existing)
     throw createError({ statusCode: 404, statusMessage: "Media not found" })
 
-  await db.delete(media).where(eq(media.id, id))
+  const [reference] = await db.select({ id: pages.id }).from(pages)
+    .where(ilike(pages.content, `%/uploads/${existing.filename}%`)).limit(1)
+  if (reference)
+    throw createError({ statusCode: 409, statusMessage: "This media is still referenced by a page. Remove the reference first." })
 
-  await unlink(join(uploadDir(), existing.filename)).catch(() => {})
+  const filePath = join(uploadDir(), existing.filename)
+  const backup = await readFile(filePath).catch(() => null)
+  if (!backup)
+    throw createError({ statusCode: 500, statusMessage: "Media file is missing" })
+
+  await unlink(filePath)
+  try {
+    await db.delete(media).where(eq(media.id, id))
+  } catch (error) {
+    await writeFile(filePath, backup).catch(() => {})
+    throw error
+  }
 
   return { ok: true }
 })

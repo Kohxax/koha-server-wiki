@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { mkdirSync } from "node:fs"
+import { rename, rm, writeFile } from "node:fs/promises"
+import { join } from "node:path"
 
 export const MAX_UPLOAD_SIZE = 20 * 1024 * 1024
 
@@ -35,4 +37,15 @@ export function isSafeSvg(content: string, { allowForeignObject = false } = {}):
 export function extToMime(ext: string): string {
   const found = Object.entries(ALLOWED_MIME_TO_EXT).find(([, value]) => value === ext)
   return found?.[0] ?? "application/octet-stream"
+}
+
+export async function writeUploadAtomically(filename: string, data: Buffer): Promise<void> {
+  const dir = uploadDir()
+  const temporaryPath = join(dir, `.${filename}.${randomUUID()}.tmp`)
+  try {
+    await writeFile(temporaryPath, data, { flag: "wx" })
+    await rename(temporaryPath, join(dir, filename))
+  } finally {
+    await rm(temporaryPath, { force: true })
+  }
 }
