@@ -39,20 +39,20 @@ useHead({ title: () => page.value?.title ?? props.path })
     </p>
   </div>
   <MDC v-else-if="page" :value="page.content" :partial="false" v-slot="{ body, data, toc }">
-    <div v-if="body" class="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[minmax(0,48rem)_14rem] lg:justify-center">
-      <article class="order-1 min-w-0">
-        <div class="mb-8">
-          <div class="flex items-center justify-between gap-4 pb-4">
-            <h1 class="text-2xl font-bold">{{ page.title }}</h1>
-            <UiButton v-if="canEdit" variant="outline" size="sm" as-child>
-              <NuxtLink :to="`/edit/${path}`">編集</NuxtLink>
-            </UiButton>
-          </div>
-          <div class="h-0.5 bg-gradient-to-r from-primary via-primary/35 to-transparent" />
+    <div v-if="body" class="mx-auto grid max-w-7xl gap-x-8 gap-y-0 lg:grid-cols-[minmax(0,48rem)_14rem] lg:justify-center">
+      <div class="mb-8 lg:col-span-2">
+        <div class="flex items-center justify-between gap-4">
+          <h1 class="text-2xl font-bold">{{ page.title }}</h1>
+          <UiButton v-if="canEdit" variant="outline" size="sm" as-child>
+            <NuxtLink :to="`/edit/${path}`">編集</NuxtLink>
+          </UiButton>
         </div>
+        <p v-if="page.description" class="mt-2 text-sm leading-6 text-muted-foreground">{{ page.description }}</p>
+      </div>
+      <article class="order-1 min-w-0">
         <MDCRenderer :body="body" :data="data" class="wiki-prose [&_img]:h-auto [&_img]:max-w-full" />
       </article>
-      <aside class="order-2 space-y-6 text-sm">
+      <aside class="order-2 hidden space-y-6 text-sm lg:block">
         <section v-if="toc?.links?.length" class="border bg-muted/30 p-4 transition-colors">
           <h2 class="mb-3 font-semibold">目次</h2>
           <nav>
