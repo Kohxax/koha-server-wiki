@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import {
-  ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, ArrowUpIcon, BookOpenIcon, CircuitBoardIcon,
-  CodeIcon, CogIcon, CpuIcon, DatabaseIcon, FileTextIcon, FolderIcon, HammerIcon, HardHatIcon,
-  InfoIcon, LightbulbIcon, MapIcon, NetworkIcon, PackageIcon, RocketIcon, ServerIcon, ShieldIcon,
-  TerminalIcon, WrenchIcon, XIcon,
+  ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, ArrowUpIcon, XIcon,
 } from "@lucide/vue"
-import type { Component } from "vue"
 import type { TreeNode } from "~~/server/utils/tree"
 import { sidebarIconOptions, type SidebarIconName } from "~~/shared/utils/sidebar-icons"
 import {
@@ -31,29 +27,6 @@ const mode = ref<"auto" | "manual">(sidebar.value?.mode ?? "auto")
 const outline = ref<OutlineNode[]>(treeToOutline(sidebar.value?.manualTree ?? []))
 const saving = ref(false)
 let nextId = 0
-
-const iconComponents: Record<SidebarIconName, Component> = {
-  Cog: CogIcon,
-  Server: ServerIcon,
-  BookOpen: BookOpenIcon,
-  Folder: FolderIcon,
-  Info: InfoIcon,
-  Wrench: WrenchIcon,
-  Hammer: HammerIcon,
-  HardHat: HardHatIcon,
-  CircuitBoard: CircuitBoardIcon,
-  Cpu: CpuIcon,
-  Database: DatabaseIcon,
-  Network: NetworkIcon,
-  Shield: ShieldIcon,
-  Terminal: TerminalIcon,
-  Code: CodeIcon,
-  FileText: FileTextIcon,
-  Lightbulb: LightbulbIcon,
-  Map: MapIcon,
-  Package: PackageIcon,
-  Rocket: RocketIcon,
-}
 
 function availablePages(): { path: string, label: string }[] {
   const result: { path: string, label: string }[] = []
@@ -94,6 +67,26 @@ function setIcon(index: number, icon?: SidebarIconName) {
   if (!node)
     return
   outline.value[index] = { ...node, icon }
+}
+
+function parentOf(index: number): OutlineNode | undefined {
+  const node = outline.value[index]
+  if (!node || node.level === 0)
+    return undefined
+
+  for (let parentIndex = index - 1; parentIndex >= 0; parentIndex--) {
+    const candidate = outline.value[parentIndex]
+    if (candidate && candidate.level === node.level - 1)
+      return candidate
+  }
+}
+
+function canSetIcon(index: number) {
+  const node = outline.value[index]
+  if (!node || !node.path)
+    return true
+
+  return !!parentOf(index)?.path || node.level === 0
 }
 
 async function saveTree() {
@@ -161,10 +154,10 @@ useHead({ title: "サイドバー設定" })
           <span v-if="node.path" class="whitespace-nowrap text-xs text-muted-foreground">
             {{ node.path }}
           </span>
-          <UiDropdownMenu v-if="!node.path">
+          <UiDropdownMenu v-if="canSetIcon(index)">
             <UiDropdownMenuTrigger as-child>
               <UiButton size="icon-sm" variant="ghost" title="アイコンを選択">
-                <component :is="node.icon ? iconComponents[node.icon] : FolderIcon" />
+                <SidebarIcon :name="node.icon ?? 'Folder'" />
               </UiButton>
             </UiDropdownMenuTrigger>
             <UiDropdownMenuContent align="end" class="w-72 p-2">
@@ -181,7 +174,7 @@ useHead({ title: "サイドバー設定" })
                   :title="option.label"
                   @click="setIcon(index, option.name)"
                 >
-                  <component :is="iconComponents[option.name]" />
+                  <SidebarIcon :name="option.name" />
                 </UiButton>
               </div>
             </UiDropdownMenuContent>

@@ -12,22 +12,23 @@ import {
 const sampleTree: TreeNode[] = [
   {
     label: "build",
+    icon: "Factory",
     children: [
       { label: "拠点", path: "build/base", children: [] },
       { label: "農場", path: "build/farm", children: [] },
     ],
   },
-  { label: "ホーム", path: "home", children: [] },
+  { label: "ホーム", path: "home", icon: "House", children: [] },
 ]
 
 describe("treeToOutline / outlineToTree round-trip", () => {
   it("converts a nested tree to a flat outline and back losslessly", () => {
     const outline = treeToOutline(sampleTree)
-    expect(outline.map(o => ({ label: o.label, path: o.path, level: o.level }))).toEqual([
-      { label: "build", path: undefined, level: 0 },
-      { label: "拠点", path: "build/base", level: 1 },
-      { label: "農場", path: "build/farm", level: 1 },
-      { label: "ホーム", path: "home", level: 0 },
+    expect(outline.map(o => ({ label: o.label, path: o.path, icon: o.icon, level: o.level }))).toEqual([
+      { label: "build", path: undefined, icon: "Factory", level: 0 },
+      { label: "拠点", path: "build/base", icon: undefined, level: 1 },
+      { label: "農場", path: "build/farm", icon: undefined, level: 1 },
+      { label: "ホーム", path: "home", icon: "House", level: 0 },
     ])
 
     expect(outlineToTree(outline)).toEqual(sampleTree)

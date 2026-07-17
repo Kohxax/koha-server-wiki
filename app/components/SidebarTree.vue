@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import {
-  BookOpenIcon, CircuitBoardIcon, CodeIcon, CogIcon, CpuIcon, DatabaseIcon, FileTextIcon,
-  ChevronDownIcon,
-  FolderIcon, HammerIcon, HardHatIcon, InfoIcon, LightbulbIcon, MapIcon, NetworkIcon,
-  PackageIcon, RocketIcon, ServerIcon, ShieldIcon, TerminalIcon, WrenchIcon,
-} from "@lucide/vue"
-import type { Component } from "vue"
+import { ChevronDownIcon } from "@lucide/vue"
 import type { SidebarIconName } from "~~/shared/utils/sidebar-icons"
 
 interface TreeNode {
@@ -32,29 +26,6 @@ function toggleExpanded(node: TreeNode) {
   expanded.value[key] = !isExpanded(node)
 }
 
-const iconComponents: Record<SidebarIconName, Component> = {
-  Cog: CogIcon,
-  Server: ServerIcon,
-  BookOpen: BookOpenIcon,
-  Folder: FolderIcon,
-  Info: InfoIcon,
-  Wrench: WrenchIcon,
-  Hammer: HammerIcon,
-  HardHat: HardHatIcon,
-  CircuitBoard: CircuitBoardIcon,
-  Cpu: CpuIcon,
-  Database: DatabaseIcon,
-  Network: NetworkIcon,
-  Shield: ShieldIcon,
-  Terminal: TerminalIcon,
-  Code: CodeIcon,
-  FileText: FileTextIcon,
-  Lightbulb: LightbulbIcon,
-  Map: MapIcon,
-  Package: PackageIcon,
-  Rocket: RocketIcon,
-}
-
 function linkTo(path: string) {
   return path === "home" ? "/" : `/wiki/${path}`
 }
@@ -69,11 +40,11 @@ function linkTo(path: string) {
         class="flex items-center gap-2 border-l-2 border-transparent px-2 py-1 hover:bg-muted"
         active-class="border-primary bg-primary/10 font-medium text-primary"
       >
-        <component v-if="node.icon" :is="iconComponents[node.icon]" class="size-4 shrink-0" />
+        <SidebarIcon v-if="node.icon" :name="node.icon" class="size-4 shrink-0" />
         {{ node.label }}
       </NuxtLink>
       <div v-else class="flex items-center gap-2 px-2 py-1 font-medium text-muted-foreground">
-        <component v-if="node.icon" :is="iconComponents[node.icon]" class="size-4 shrink-0" />
+        <SidebarIcon v-if="node.icon" :name="node.icon" class="size-4 shrink-0" />
         <span class="min-w-0 flex-1 truncate">{{ node.label }}</span>
         <UiButton
           v-if="node.children.length"
