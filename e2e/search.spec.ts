@@ -11,6 +11,7 @@ test("finds pages by partial match in japanese title and content", async ({ page
       path,
       title: `検索テスト${Date.now()}`,
       content: `このページには${uniqueWord}についての説明があります。`,
+      expectedUpdatedAt: null,
     },
   })
   expect(createPage.ok()).toBe(true)

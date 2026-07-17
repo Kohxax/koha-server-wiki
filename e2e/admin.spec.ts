@@ -54,7 +54,7 @@ test.describe("page management", () => {
     const title = `階層ページ-${folder}`
 
     const response = await page.request.put(`/api/pages/${path}`, {
-      data: { title, description: "", content: "# ページ管理のテスト" },
+      data: { title, description: "", content: "# ページ管理のテスト", expectedUpdatedAt: null },
     })
     expect(response.ok()).toBeTruthy()
 
@@ -74,7 +74,7 @@ test.describe("page management", () => {
     const address = "127.0.0.1"
 
     const response = await page.request.put(`/api/pages/${path}`, {
-      data: { title: "サーバーステータス", description: "", content: `::server-status{address="${address}"}\n::` },
+      data: { title: "サーバーステータス", description: "", content: `::server-status{address="${address}"}\n::`, expectedUpdatedAt: null },
     })
     expect(response.ok()).toBeTruthy()
 
