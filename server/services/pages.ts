@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm"
+import { and, eq, sql } from "drizzle-orm"
 import type { useDb } from "../database/client"
 import type { User } from "../database/schema"
 import { pageRevisions, pages, settings } from "../database/schema"
@@ -60,7 +60,9 @@ export async function savePage(db: Database, editor: User, currentPath: string, 
 
     const [saved] = await tx.update(pages)
       .set({ path: input.path, title: input.title, description, content: input.content, updatedBy: editor.id, updatedAt: new Date() })
-      .where(and(eq(pages.id, existing.id), eq(pages.updatedAt, existing.updatedAt)))
+      // PostgreSQL stores timestamps with microsecond precision, whereas the
+      // JavaScript Date sent by the client has millisecond precision.
+      .where(and(eq(pages.id, existing.id), sql`date_trunc('milliseconds', ${pages.updatedAt}) = ${existing.updatedAt.toISOString()}`))
       .returning()
     if (!saved)
       throw createError({ statusCode: 409, statusMessage: "Page was changed. Reload before saving again." })

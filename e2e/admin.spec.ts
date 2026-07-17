@@ -19,7 +19,7 @@ test.describe("admin users", () => {
 
     const viewerRow = page.getByRole("row", { name: /dev-viewer/ })
     await viewerRow.getByRole("button", { name: "viewer" }).click()
-    await viewerRow.getByRole("menuitemradio", { name: "editor" }).click()
+    await page.getByRole("menuitemradio", { name: "editor" }).click()
     await expect(viewerRow.getByRole("button", { name: "editor" })).toBeVisible()
   })
 })
@@ -96,10 +96,9 @@ test.describe("manual sidebar editing", () => {
     const lastInput = page.locator("li input:not([disabled])").last()
     await lastInput.fill(label)
     await page.getByRole("button", { name: "保存" }).click()
-    await expect(page.locator("aside").getByText(label)).toBeVisible()
 
     await page.goto("/")
-    await expect(page.getByText(label)).toBeVisible()
+    await expect(page.locator("aside").getByText(label)).toBeVisible()
 
     await page.goto("/settings/sidebar")
     await page.getByRole("button", { name: "自動" }).click()

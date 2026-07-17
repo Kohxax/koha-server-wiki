@@ -2,6 +2,10 @@ import { expect, test } from "@playwright/test"
 
 test.use({ storageState: "e2e/.auth/editor.json" })
 
+function markdownEditor(page: import("@playwright/test").Page) {
+  return page.getByPlaceholder("Markdownで本文を入力")
+}
+
 test("create, edit with live preview, and save", async ({ page }) => {
   const path = `e2e-test-${Date.now()}`
 
@@ -11,7 +15,7 @@ test("create, edit with live preview, and save", async ({ page }) => {
 
   await expect(page).toHaveURL(`/edit/${path}`)
   await page.getByLabel("タイトル").fill("E2Eテストページ")
-  await page.locator("textarea").first().fill("# 最初の内容\n\n## H2見出し\n\n### H3見出し\n\n#### H4見出し")
+  await markdownEditor(page).fill("# 最初の内容\n\n## H2見出し\n\n### H3見出し\n\n#### H4見出し")
 
   // The preview must be replaced with the current input, rather than showing a stale parse result.
   await expect(page.getByRole("heading", { name: "最初の内容" })).toBeVisible()
@@ -28,7 +32,7 @@ test("create, edit with live preview, and save", async ({ page }) => {
 
   await page.getByRole("link", { name: "編集" }).click()
   await expect(page).toHaveURL(`/edit/${path}`)
-  await page.locator("textarea").first().fill("# 更新後の内容")
+  await markdownEditor(page).fill("# 更新後の内容")
   await page.getByRole("button", { name: "保存" }).click()
   await expect(page).toHaveURL(`/wiki/${path}`)
 })
@@ -51,7 +55,7 @@ test("image insertion updates the editor preview", async ({ page }) => {
   await page.getByTitle("画像").click()
   await page.getByTitle(imageName).click()
 
-  await expect(page.locator("textarea")).toHaveValue(new RegExp(`!\\[${imageName}\\]`))
+  await expect(markdownEditor(page)).toHaveValue(new RegExp(`!\\[${imageName}\\]`))
   await expect(page.getByRole("dialog")).toBeHidden()
   await expect(page.locator(`img[alt="${imageName}"]`)).toBeVisible()
 })
@@ -95,7 +99,7 @@ test("editor tabs fit the viewport and work on mobile", async ({ page }) => {
   await page.getByLabel("タイトル").fill("モバイル編集")
 
   await page.getByRole("tab", { name: "Markdown" }).click()
-  const textarea = page.locator("textarea").first()
+  const textarea = markdownEditor(page)
   const editorScroller = textarea.locator("xpath=..")
   await textarea.fill("# モバイルの内容")
   await expect(textarea).toBeVisible()
