@@ -103,13 +103,14 @@ onBeforeUnmount(() => {
     </h1>
     <div class="flex min-h-0 flex-1 flex-col">
       <div class="flex shrink-0 flex-wrap items-center justify-between gap-2">
-        <div role="tablist" aria-label="編集内容" class="flex items-center gap-1 md:hidden">
+        <div role="tablist" aria-label="編集内容" class="flex items-center gap-1 border border-sidebar-border bg-sidebar p-1 dark:border-0 dark:bg-transparent dark:p-0 md:hidden">
           <UiButton
             id="frontmatter-tab"
             role="tab"
             type="button"
             size="sm"
             :variant="activeTab === 'frontmatter' ? 'secondary' : 'ghost'"
+            :class="activeTab === 'frontmatter' ? 'bg-sidebar-accent hover:bg-sidebar-accent dark:bg-secondary dark:hover:bg-secondary/80' : ''"
             :aria-selected="activeTab === 'frontmatter'"
             aria-controls="frontmatter-panel"
             @click="activeTab = 'frontmatter'"
@@ -120,6 +121,7 @@ onBeforeUnmount(() => {
             type="button"
             size="sm"
             :variant="activeTab === 'editor' ? 'secondary' : 'ghost'"
+            :class="activeTab === 'editor' ? 'bg-sidebar-accent hover:bg-sidebar-accent dark:bg-secondary dark:hover:bg-secondary/80' : ''"
             :aria-selected="activeTab === 'editor'"
             aria-controls="editor-panel"
             @click="activeTab = 'editor'"
@@ -130,6 +132,7 @@ onBeforeUnmount(() => {
             type="button"
             size="sm"
             :variant="activeTab === 'preview' ? 'secondary' : 'ghost'"
+            :class="activeTab === 'preview' ? 'bg-sidebar-accent hover:bg-sidebar-accent dark:bg-secondary dark:hover:bg-secondary/80' : ''"
             :aria-selected="activeTab === 'preview'"
             aria-controls="preview-panel"
             @click="activeTab = 'preview'"
@@ -137,7 +140,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="mb-2 ml-auto flex items-center gap-2">
           <span v-if="isDirty" class="text-sm text-muted-foreground">未保存の変更があります</span>
-          <UiButton variant="outline" :disabled="saving" @click="cancel">キャンセル</UiButton>
+          <UiButton variant="outline" class="bg-sidebar hover:bg-sidebar-accent" :disabled="saving" @click="cancel">キャンセル</UiButton>
           <UiButton :disabled="saving" @click="save">保存</UiButton>
         </div>
       </div>
@@ -146,7 +149,7 @@ onBeforeUnmount(() => {
           id="frontmatter-panel"
           role="tabpanel"
           aria-labelledby="frontmatter-tab"
-          class="min-h-0 overflow-auto border p-4"
+          class="min-h-0 overflow-auto border border-sidebar-border bg-sidebar p-4 dark:bg-transparent"
           :class="activeTab === 'frontmatter' ? 'block' : 'hidden md:block'"
         >
           <div class="space-y-4">

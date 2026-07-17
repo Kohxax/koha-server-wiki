@@ -81,7 +81,7 @@ function insertMedia(markdown: string) {
 <template>
   <div class="flex min-h-0 flex-1 flex-col">
     <div v-if="props.view === 'edit'" class="flex min-h-0 flex-1 flex-col border">
-      <div class="flex shrink-0 flex-wrap items-center gap-1 border-b bg-muted/40 p-1">
+      <div class="flex shrink-0 flex-wrap items-center gap-1 border-b border-sidebar-border bg-sidebar p-1 dark:bg-muted/40">
         <UiButton type="button" variant="ghost" size="sm" title="太字" @click="insertBold"><BoldIcon /></UiButton>
         <UiButton type="button" variant="ghost" size="sm" title="見出し" @click="insertHeading"><HeadingIcon /></UiButton>
         <UiButton type="button" variant="ghost" size="sm" title="外部リンク" @click="insertLink"><LinkIcon /></UiButton>
@@ -94,7 +94,7 @@ function insertMedia(markdown: string) {
         <UiTextarea ref="textareaRef" v-model="model" class="box-border block min-h-full resize-none border-0 pb-[calc(100vh-10rem)] font-mono" placeholder="Markdownで本文を入力" />
       </div>
     </div>
-    <div v-else class="min-h-0 flex-1 overflow-auto border bg-muted/20 p-4">
+    <div v-else class="min-h-0 flex-1 overflow-auto border border-sidebar-border bg-sidebar p-4 dark:bg-muted/20">
       <MDCRenderer v-if="preview?.body" :body="preview.body" :data="preview.data" class="wiki-prose" />
     </div>
 

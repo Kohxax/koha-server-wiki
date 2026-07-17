@@ -51,7 +51,7 @@ useHead({ title: () => page.value?.title ?? props.path })
       <div class="mb-8 lg:col-span-2">
         <div class="flex items-center justify-between gap-4">
           <h1 class="text-2xl font-bold">{{ page.title }}</h1>
-          <UiButton v-if="canEdit" variant="outline" size="sm" as-child>
+          <UiButton v-if="canEdit" variant="outline" size="sm" class="bg-sidebar hover:bg-sidebar-accent" as-child>
             <NuxtLink :to="`/edit/${path}`">編集</NuxtLink>
           </UiButton>
         </div>
@@ -61,13 +61,13 @@ useHead({ title: () => page.value?.title ?? props.path })
         <MDCRenderer :body="body" :data="data" class="wiki-prose [&_img]:h-auto [&_img]:max-w-full" />
       </article>
       <aside class="order-2 hidden space-y-6 text-sm lg:block">
-        <section v-if="toc?.links?.length" class="border bg-muted/30 p-4 transition-colors">
+        <section v-if="toc?.links?.length" class="border border-sidebar-border bg-sidebar p-4 transition-colors dark:bg-muted/30">
           <h2 class="mb-3 font-semibold">目次</h2>
           <nav>
             <TocTree :entries="toc.links" @select="scrollToHeading" />
           </nav>
         </section>
-        <section class="border bg-muted/30 p-4 text-muted-foreground">
+        <section class="border border-sidebar-border bg-sidebar p-4 text-muted-foreground dark:bg-muted/30">
           <div class="flex items-start gap-2">
             <HistoryIcon class="mt-0.5 size-4 shrink-0" />
             <p>最終更新: {{ page.updatedByUsername ?? "不明" }}<br>（{{ updatedAt }}）</p>
