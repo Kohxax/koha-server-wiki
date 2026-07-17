@@ -4,6 +4,7 @@ import net from "node:net"
 const DEFAULT_PORT = 25565
 const STATUS_TIMEOUT_MS = 3_000
 const CACHE_TTL_MS = 60_000
+const MAX_CACHE_ENTRIES = 100
 const MAX_PACKET_SIZE = 1_048_576
 const JAVA_PROTOCOL_VERSION = 758
 
@@ -34,6 +35,7 @@ interface CachedStatus {
 }
 
 const statusCache = new Map<string, CachedStatus>()
+const pendingRequests = new Map<string, Promise<MinecraftServerStatus>>()
 
 export function parseMinecraftServerAddress(raw: string): MinecraftServerAddress {
   const value = raw.trim()
@@ -275,14 +277,27 @@ export async function getMinecraftServerStatus(rawAddress: string): Promise<Mine
   if (cached && cached.expiresAt > Date.now())
     return cached.value
 
-  const server = await resolvePublicMinecraftServer(address)
-  let value: MinecraftServerStatus
-  try {
-    value = await pingMinecraftServer(server)
-  } catch {
-    value = { address: `${server.host}:${server.port}`, online: false }
-  }
+  const pending = pendingRequests.get(key)
+  if (pending)
+    return await pending
 
-  statusCache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS })
-  return value
+  const request = (async () => {
+    const server = await resolvePublicMinecraftServer(address)
+    let value: MinecraftServerStatus
+    try {
+      value = await pingMinecraftServer(server)
+    } catch {
+      value = { address: `${server.host}:${server.port}`, online: false }
+    }
+    if (statusCache.size >= MAX_CACHE_ENTRIES)
+      statusCache.delete(statusCache.keys().next().value!)
+    statusCache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS })
+    return value
+  })()
+  pendingRequests.set(key, request)
+  try {
+    return await request
+  } finally {
+    pendingRequests.delete(key)
+  }
 }

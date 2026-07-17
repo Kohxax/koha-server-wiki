@@ -9,6 +9,8 @@ export default defineEventHandler(async (event) => {
   const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 20) : 20
   if (!q)
     return []
+  if (q.length > 100)
+    throw createError({ statusCode: 400, statusMessage: "Search query must be 100 characters or fewer" })
 
   const db = useDb()
   const pattern = `%${q}%`
