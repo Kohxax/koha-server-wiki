@@ -7,7 +7,7 @@ const sidebarOpen = useState('sidebar-open', () => true)
     <AppHeader />
     <div class="flex flex-1">
       <AppSidebar :open="sidebarOpen" @toggle="sidebarOpen = !sidebarOpen" />
-      <main class="min-w-0 flex-1 p-4 sm:p-6">
+      <main class="min-w-0 flex-1 bg-background p-4 sm:p-6">
         <div class="page-content">
           <slot />
         </div>

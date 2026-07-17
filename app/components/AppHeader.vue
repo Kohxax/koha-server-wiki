@@ -26,7 +26,7 @@ function submitSearch() {
 </script>
 
 <template>
-  <header class="sticky top-0 z-40 flex h-14 items-center gap-2 border-b bg-background px-2 sm:gap-4 sm:px-4">
+  <header class="app-shell sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-sidebar-border bg-sidebar px-2 text-sidebar-foreground sm:gap-4 sm:px-4">
     <NuxtLink to="/" class="flex shrink-0 items-center gap-2 font-semibold text-primary">
       <img src="~/assets/images/face.webp" alt="" class="size-8 object-contain" width="32" height="32">
       <span class="hidden sm:inline">こは鯖wiki</span>
