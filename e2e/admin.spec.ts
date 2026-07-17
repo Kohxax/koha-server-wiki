@@ -45,6 +45,44 @@ test.describe("editor (non-admin) access", () => {
   })
 })
 
+test.describe("page management", () => {
+  test.use({ storageState: "e2e/.auth/editor.json" })
+
+  test("groups nested pages in folders", async ({ page }) => {
+    const folder = `e2e-folder-${Date.now()}`
+    const path = `${folder}/child`
+    const title = `階層ページ-${folder}`
+
+    const response = await page.request.put(`/api/pages/${path}`, {
+      data: { title, description: "", content: "# ページ管理のテスト" },
+    })
+    expect(response.ok()).toBeTruthy()
+
+    await page.goto("/settings/pages")
+    await expect(page.getByText(folder, { exact: true })).toBeVisible()
+    const managedPage = page.getByText(title, { exact: true })
+    await expect(managedPage).toBeVisible()
+
+    await page.getByRole("button", { name: `${folder}を折りたたむ` }).click()
+    await expect(managedPage).toBeHidden()
+    await page.getByRole("button", { name: `${folder}を展開する` }).click()
+    await expect(managedPage).toBeVisible()
+  })
+
+  test("renders the server status MDC component", async ({ page }) => {
+    const path = `e2e-server-status-${Date.now()}`
+    const address = "127.0.0.1"
+
+    const response = await page.request.put(`/api/pages/${path}`, {
+      data: { title: "サーバーステータス", description: "", content: `::server-status{address="${address}"}\n::` },
+    })
+    expect(response.ok()).toBeTruthy()
+
+    await page.goto(`/wiki/${path}`)
+    await expect(page.getByText(address)).toBeVisible()
+  })
+})
+
 test.describe("manual sidebar editing", () => {
   test.use({ storageState: "e2e/.auth/editor.json" })
 
