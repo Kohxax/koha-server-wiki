@@ -47,16 +47,19 @@ describe("schema crud", () => {
     const [page] = await db.insert(schema.pages).values({
       path: "home",
       title: "ホーム",
+      description: "こは鯖のトップページ",
       content: "# ようこそ",
       createdBy: user.id,
       updatedBy: user.id,
     }).returning()
 
     expect(page.path).toBe("home")
+    expect(page.description).toBe("こは鯖のトップページ")
 
     const [revision] = await db.insert(schema.pageRevisions).values({
       pageId: page.id,
       title: page.title,
+      description: page.description,
       content: page.content,
       editedBy: user.id,
     }).returning()

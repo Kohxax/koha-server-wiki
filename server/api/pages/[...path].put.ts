@@ -5,6 +5,7 @@ import { pageRevisions, pages } from "../../database/schema"
 
 const bodySchema = z.object({
   title: z.string().trim().min(1).max(200),
+  description: z.string().trim().max(500).optional().default(""),
   content: z.string(),
 })
 
@@ -16,7 +17,8 @@ export default defineEventHandler(async (event) => {
   if (!isValidPagePath(path))
     throw createError({ statusCode: 400, statusMessage: "Invalid page path" })
 
-  const { title, content } = await readValidatedBody(event, bodySchema.parse)
+  const { title, description, content } = await readValidatedBody(event, bodySchema.parse)
+  const normalizedDescription = description || null
 
   const db = useDb()
   const [existing] = await db.select().from(pages).where(eq(pages.path, path))
@@ -25,12 +27,13 @@ export default defineEventHandler(async (event) => {
     await db.insert(pageRevisions).values({
       pageId: existing.id,
       title: existing.title,
+      description: existing.description,
       content: existing.content,
       editedBy: existing.updatedBy ?? existing.createdBy,
     })
 
     const [updated] = await db.update(pages)
-      .set({ title, content, updatedBy: editor.id, updatedAt: new Date() })
+      .set({ title, description: normalizedDescription, content, updatedBy: editor.id, updatedAt: new Date() })
       .where(eq(pages.id, existing.id))
       .returning()
     if (!updated)
@@ -39,7 +42,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const [created] = await db.insert(pages)
-    .values({ path, title, content, createdBy: editor.id, updatedBy: editor.id })
+    .values({ path, title, description: normalizedDescription, content, createdBy: editor.id, updatedBy: editor.id })
     .returning()
   if (!created)
     throw new Error("Failed to create page")

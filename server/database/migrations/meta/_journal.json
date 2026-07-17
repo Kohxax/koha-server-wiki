@@ -15,6 +15,13 @@
       "when": 1784020957858,
       "tag": "0001_add_pg_trgm_search",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784250492915,
+      "tag": "0002_lowly_the_anarchist",
+      "breakpoints": true
     }
   ]
 }

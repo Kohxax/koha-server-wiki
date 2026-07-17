@@ -13,6 +13,7 @@ export default defineEventHandler(async (event) => {
     id: pages.id,
     path: pages.path,
     title: pages.title,
+    description: pages.description,
     content: pages.content,
     createdBy: pages.createdBy,
     updatedBy: pages.updatedBy,
