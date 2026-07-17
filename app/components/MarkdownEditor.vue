@@ -1,17 +1,28 @@
 <script setup lang="ts">
 import { BoldIcon, CodeIcon, HeadingIcon, ImageIcon, LinkIcon, ShapesIcon } from '@lucide/vue'
+import { parseMarkdown } from '@nuxtjs/mdc/runtime'
 
 const model = defineModel<string>({ required: true })
 
 const textareaRef = ref<{ $el: HTMLTextAreaElement } | HTMLTextAreaElement | null>(null)
 const mobileView = ref<"edit" | "preview">("edit")
-// MDC does not reliably reparse its value after mount. Keep a separate rendered
-// value and remount only the preview pane when the editor changes.
-const previewContent = ref(model.value)
+const preview = shallowRef<any>()
+let previewTimer: ReturnType<typeof setTimeout> | undefined
+let previewRequest = 0
+
+async function updatePreview(value: string) {
+  const request = ++previewRequest
+  const parsed = await parseMarkdown(value)
+  if (request === previewRequest)
+    preview.value = parsed
+}
 
 watch(model, (value) => {
-  previewContent.value = value
+  clearTimeout(previewTimer)
+  previewTimer = setTimeout(() => void updatePreview(value), 150)
 }, { immediate: true })
+
+onBeforeUnmount(() => clearTimeout(previewTimer))
 
 function getTextareaEl(): HTMLTextAreaElement | null {
   const el = textareaRef.value
@@ -86,7 +97,7 @@ function insertMedia(markdown: string) {
         class="min-h-0 overflow-auto border bg-muted/20 p-4"
         :class="mobileView === 'preview' ? 'block' : 'hidden md:block'"
       >
-        <MDC :key="previewContent" :value="previewContent" tag="div" class="wiki-prose" />
+        <MDCRenderer v-if="preview?.body" :body="preview.body" :data="preview.data" class="wiki-prose" />
       </div>
     </div>
 
