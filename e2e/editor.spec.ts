@@ -23,6 +23,9 @@ test("create, edit with live preview, and save", async ({ page }) => {
   await expect(page.getByRole("link", { name: "H3見出し" })).toBeVisible()
   await expect(page.getByRole("link", { name: "H4見出し" })).toBeVisible()
 
+  await page.getByRole("link", { name: "H3見出し" }).click()
+  await expect(page).toHaveURL(new RegExp(`${path}#h3`))
+
   await page.getByRole("link", { name: "編集" }).click()
   await expect(page).toHaveURL(`/edit/${path}`)
   await page.locator("textarea").first().fill("# 更新後の内容")
