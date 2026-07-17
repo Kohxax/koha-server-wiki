@@ -1,5 +1,6 @@
 {
   "name": "koha-server-wiki",
+  "packageManager": "pnpm@11.13.0",
   "type": "module",
   "private": true,
   "scripts": {
