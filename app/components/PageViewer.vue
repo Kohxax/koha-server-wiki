@@ -38,7 +38,7 @@ useHead({ title: () => page.value?.title ?? props.path })
       ページの読み込み中にエラーが発生しました。
     </p>
   </div>
-  <MDC v-else-if="page" :value="page.content" :partial="false" v-slot="{ body, data, toc }">
+  <MDC v-else-if="page" :key="`${page.path}:${page.updatedAt}`" :cache-key="`page-mdc:${page.path}:${page.updatedAt}`" :value="page.content" :partial="false" v-slot="{ body, data, toc }">
     <div v-if="body" class="mx-auto grid max-w-7xl gap-x-8 gap-y-0 lg:grid-cols-[minmax(0,48rem)_14rem] lg:justify-center">
       <div class="mb-8 lg:col-span-2">
         <div class="flex items-center justify-between gap-4">
