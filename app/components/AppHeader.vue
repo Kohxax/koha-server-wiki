@@ -131,7 +131,7 @@ function handleSearchKeydown(event: KeyboardEvent) {
           v-model="searchQuery"
           type="search"
           placeholder="検索..."
-          class="pl-8 !border-white/30 !bg-white/[0.12] !text-white backdrop-blur-xs placeholder:!text-white/70 hover:!bg-white/[0.16] focus-visible:!bg-white/[0.22]"
+          class="pl-8 !border-black/50 !bg-[#1c1c1c] !text-white placeholder:!text-white/70 hover:!bg-[#292929] focus-visible:!border-primary focus-visible:!bg-[#292929]"
           role="combobox"
           aria-autocomplete="list"
           aria-controls="search-suggestions"
@@ -169,7 +169,7 @@ function handleSearchKeydown(event: KeyboardEvent) {
       </div>
     </div>
     <NuxtLink v-if="canEdit" to="/new">
-      <UiButton variant="outline" size="sm" class="!border-white/30 !bg-white/[0.12] !text-white backdrop-blur-xs hover:!bg-white/[0.22] hover:!text-white">
+      <UiButton variant="outline" size="sm" class="!border-black/50 !bg-[#1c1c1c] !text-white hover:!bg-[#292929] hover:!text-white">
         <PlusIcon />
         <span class="hidden sm:inline">新規作成</span>
       </UiButton>
@@ -191,7 +191,7 @@ function handleSearchKeydown(event: KeyboardEvent) {
       <MoonIcon class="size-4 !text-white/70" />
     </div>
     <NuxtLink v-if="!loggedIn" to="/login">
-      <UiButton variant="outline" size="sm" class="!border-white/30 !bg-white/[0.12] !text-white backdrop-blur-xs hover:!bg-white/[0.22] hover:!text-white">ログイン</UiButton>
+      <UiButton variant="outline" size="sm" class="!border-black/50 !bg-[#1c1c1c] !text-white hover:!bg-[#292929] hover:!text-white">ログイン</UiButton>
     </NuxtLink>
     <UiDropdownMenu v-else>
       <UiDropdownMenuTrigger as-child>
