@@ -120,19 +120,19 @@ function handleSearchKeydown(event: KeyboardEvent) {
 </script>
 
 <template>
-  <header class="app-shell sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-sidebar-border bg-sidebar px-2 text-sidebar-foreground sm:gap-4 sm:px-4">
-    <NuxtLink to="/" class="flex shrink-0 items-center gap-2 font-semibold text-primary">
+  <header class="app-shell grass-header sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-sidebar-border px-2 text-sidebar-foreground sm:gap-4 sm:px-4">
+    <NuxtLink to="/" class="grass-header__brand flex shrink-0 items-center gap-2 font-semibold">
       <img src="~/assets/images/face.webp" alt="" class="size-8 object-contain" width="32" height="32">
       <span class="hidden sm:inline">こは鯖wiki</span>
     </NuxtLink>
     <div class="flex min-w-0 flex-1 justify-center px-1 sm:px-4">
       <div ref="searchContainer" class="relative w-full max-w-md">
-        <SearchIcon class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+        <SearchIcon class="pointer-events-none absolute z-10 top-1/2 left-2.5 size-4 -translate-y-1/2 !text-white" />
         <UiInput
           v-model="searchQuery"
           type="search"
           placeholder="検索..."
-          class="pl-8"
+          class="pl-8 !border-white/30 !bg-white/[0.12] !text-white backdrop-blur-xs placeholder:!text-white/70 hover:!bg-white/[0.16] focus-visible:!bg-white/[0.22]"
           role="combobox"
           aria-autocomplete="list"
           aria-controls="search-suggestions"
@@ -170,18 +170,18 @@ function handleSearchKeydown(event: KeyboardEvent) {
       </div>
     </div>
     <NuxtLink v-if="canEdit" to="/new">
-      <UiButton variant="outline" size="sm">
+      <UiButton variant="outline" size="sm" class="!border-white/30 !bg-white/[0.12] !text-white backdrop-blur-xs hover:!bg-white/[0.22] hover:!text-white">
         <PlusIcon />
         <span class="hidden sm:inline">新規作成</span>
       </UiButton>
     </NuxtLink>
     <UiDropdownMenu v-if="canEdit">
       <UiDropdownMenuTrigger as-child>
-        <UiButton variant="ghost" size="icon" aria-label="管理メニュー">
+        <UiButton variant="ghost" size="icon" aria-label="管理メニュー" class="!text-white hover:!bg-white/[0.16] hover:!text-white">
           <SettingsIcon />
         </UiButton>
       </UiDropdownMenuTrigger>
-      <UiDropdownMenuContent align="end">
+      <UiDropdownMenuContent align="end" class="grass-header-menu">
         <UiDropdownMenuItem as-child>
           <NuxtLink to="/admin/media">メディア管理</NuxtLink>
         </UiDropdownMenuItem>
@@ -191,13 +191,18 @@ function handleSearchKeydown(event: KeyboardEvent) {
       </UiDropdownMenuContent>
     </UiDropdownMenu>
     <div class="flex items-center gap-1.5">
-      <SunIcon class="size-4 text-muted-foreground" />
-      <UiSwitch v-if="!colorMode.unknown" v-model="isDark" aria-label="テーマ切替" />
+      <SunIcon class="size-4 !text-white/70" />
+      <UiSwitch
+        v-if="!colorMode.unknown"
+        v-model="isDark"
+        aria-label="テーマ切替"
+        class="data-unchecked:!bg-white/30 data-checked:!bg-white/50 [&_[data-slot=switch-thumb]]:!bg-white"
+      />
       <span v-else class="block h-[18.4px] w-8" aria-hidden="true" />
-      <MoonIcon class="size-4 text-muted-foreground" />
+      <MoonIcon class="size-4 !text-white/70" />
     </div>
     <NuxtLink v-if="!loggedIn" to="/login">
-      <UiButton variant="outline" size="sm">ログイン</UiButton>
+      <UiButton variant="outline" size="sm" class="!border-white/30 !bg-white/[0.12] !text-white backdrop-blur-xs hover:!bg-white/[0.22] hover:!text-white">ログイン</UiButton>
     </NuxtLink>
     <UiDropdownMenu v-else>
       <UiDropdownMenuTrigger as-child>
@@ -208,7 +213,7 @@ function handleSearchKeydown(event: KeyboardEvent) {
           </UiAvatar>
         </button>
       </UiDropdownMenuTrigger>
-      <UiDropdownMenuContent align="end">
+      <UiDropdownMenuContent align="end" class="grass-header-menu">
         <UiDropdownMenuLabel>{{ user?.username }} ({{ user?.role }})</UiDropdownMenuLabel>
         <UiDropdownMenuSeparator />
         <UiDropdownMenuItem @click="logout">ログアウト</UiDropdownMenuItem>
