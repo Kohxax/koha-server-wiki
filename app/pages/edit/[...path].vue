@@ -105,7 +105,7 @@ onBeforeUnmount(() => {
     <div class="flex min-h-0 flex-1 flex-col">
       <div class="flex shrink-0 flex-wrap items-center justify-between gap-2">
         <span class="text-sm font-medium">本文 (Markdown)</span>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 mb-2">
           <span v-if="isDirty" class="text-sm text-muted-foreground">未保存の変更があります</span>
           <UiButton variant="outline" :disabled="saving" @click="cancel">キャンセル</UiButton>
           <UiButton :disabled="saving" @click="save">保存</UiButton>
