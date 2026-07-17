@@ -126,12 +126,12 @@ function handleSearchKeydown(event: KeyboardEvent) {
     </NuxtLink>
     <div class="flex min-w-0 flex-1 justify-center px-1 sm:px-4">
       <div ref="searchContainer" class="relative w-full max-w-md">
-        <SearchIcon class="pointer-events-none absolute z-10 top-1/2 left-2.5 size-4 -translate-y-1/2 !text-white" />
+        <SearchIcon class="pointer-events-none absolute z-10 top-1/2 left-2.5 size-4 -translate-y-1/2 !text-zinc-700 dark:!text-white" />
         <UiInput
           v-model="searchQuery"
           type="search"
           placeholder="検索..."
-          class="pl-8 !border-black/50 !bg-[#1c1c1c] !text-white placeholder:!text-white/70 hover:!bg-[#292929] focus-visible:!border-primary focus-visible:!bg-[#292929]"
+          class="pl-8 !border-black/40 !bg-[#dededb] !text-zinc-900 placeholder:!text-zinc-600 hover:!bg-[#e8e8e5] focus-visible:!border-primary focus-visible:!bg-[#e8e8e5] dark:!border-black/50 dark:!bg-[#1c1c1c] dark:!text-white dark:placeholder:!text-white/70 dark:hover:!bg-[#292929] dark:focus-visible:!bg-[#292929]"
           role="combobox"
           aria-autocomplete="list"
           aria-controls="search-suggestions"
@@ -169,7 +169,7 @@ function handleSearchKeydown(event: KeyboardEvent) {
       </div>
     </div>
     <NuxtLink v-if="canEdit" to="/new">
-      <UiButton variant="outline" size="sm" class="!border-black/50 !bg-[#1c1c1c] !text-white hover:!bg-[#292929] hover:!text-white">
+      <UiButton variant="outline" size="sm" class="!border-black/40 !bg-[#dededb] !text-zinc-900 hover:!bg-[#e8e8e5] hover:!text-zinc-900 dark:!border-black/50 dark:!bg-[#1c1c1c] dark:!text-white dark:hover:!bg-[#292929] dark:hover:!text-white">
         <PlusIcon />
         <span class="hidden sm:inline">新規作成</span>
       </UiButton>
@@ -191,7 +191,7 @@ function handleSearchKeydown(event: KeyboardEvent) {
       <MoonIcon class="size-4 !text-white/70" />
     </div>
     <NuxtLink v-if="!loggedIn" to="/login">
-      <UiButton variant="outline" size="sm" class="!border-black/50 !bg-[#1c1c1c] !text-white hover:!bg-[#292929] hover:!text-white">ログイン</UiButton>
+      <UiButton variant="outline" size="sm" class="!border-black/40 !bg-[#dededb] !text-zinc-900 hover:!bg-[#e8e8e5] hover:!text-zinc-900 dark:!border-black/50 dark:!bg-[#1c1c1c] dark:!text-white dark:hover:!bg-[#292929] dark:hover:!text-white">ログイン</UiButton>
     </NuxtLink>
     <UiDropdownMenu v-else>
       <UiDropdownMenuTrigger as-child>
