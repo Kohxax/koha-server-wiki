@@ -233,7 +233,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page-content {
+  .page-content,
+  .app-sidebar {
     transition: none;
   }
 }

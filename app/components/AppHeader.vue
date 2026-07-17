@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import { MoonIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, PlusIcon, SearchIcon, SettingsIcon, SunIcon } from '@lucide/vue'
-
-const props = defineProps<{ sidebarOpen: boolean }>()
-const emit = defineEmits<{ toggleSidebar: [] }>()
+import { MoonIcon, PlusIcon, SearchIcon, SettingsIcon, SunIcon } from '@lucide/vue'
 
 const colorMode = useColorMode()
 const { loggedIn, user, clear } = useUserSession()
@@ -29,22 +26,12 @@ function submitSearch() {
 </script>
 
 <template>
-  <header class="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4">
+  <header class="sticky top-0 z-40 flex h-14 items-center gap-2 border-b bg-background px-2 sm:gap-4 sm:px-4">
     <NuxtLink to="/" class="flex shrink-0 items-center gap-2 font-semibold text-primary">
       <img src="~/assets/images/face.webp" alt="" class="size-8 object-contain" width="32" height="32">
-      <span>こは鯖wiki</span>
+      <span class="hidden sm:inline">こは鯖wiki</span>
     </NuxtLink>
-    <UiButton
-      class="hidden md:inline-flex"
-      variant="ghost"
-      size="icon"
-      :aria-label="props.sidebarOpen ? 'サイドバーを閉じる' : 'サイドバーを開く'"
-      @click="emit('toggleSidebar')"
-    >
-      <PanelLeftCloseIcon v-if="props.sidebarOpen" />
-      <PanelLeftOpenIcon v-else />
-    </UiButton>
-    <div class="flex flex-1 justify-center px-4">
+    <div class="flex min-w-0 flex-1 justify-center px-1 sm:px-4">
       <div class="relative w-full max-w-md">
         <SearchIcon class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
         <UiInput v-model="searchQuery" type="search" placeholder="検索..." class="pl-8" @keyup.enter="submitSearch" />
@@ -53,7 +40,7 @@ function submitSearch() {
     <NuxtLink v-if="canEdit" to="/new">
       <UiButton variant="outline" size="sm">
         <PlusIcon />
-        新規作成
+        <span class="hidden sm:inline">新規作成</span>
       </UiButton>
     </NuxtLink>
     <UiDropdownMenu v-if="canEdit">
