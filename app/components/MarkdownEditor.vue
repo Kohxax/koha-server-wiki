@@ -11,7 +11,7 @@ const props = withDefaults(defineProps<{
 })
 
 const textareaRef = ref<{ $el: HTMLTextAreaElement } | HTMLTextAreaElement | null>(null)
-const preview = shallowRef<any>()
+const preview = shallowRef<Awaited<ReturnType<typeof parseMarkdown>>>()
 let previewTimer: ReturnType<typeof setTimeout> | undefined
 let previewRequest = 0
 

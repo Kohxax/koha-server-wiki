@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { MediaDto } from "~~/shared/types/api"
+import { apiErrorMessage } from "~~/shared/utils/api-error"
 
 definePageMeta({ middleware: ["require-editor"] })
 
 const { data: items, refresh } = await useFetch<MediaDto[]>("/api/media", { key: "admin-media" })
 const deletingId = ref<number | null>(null)
 const itemToDelete = ref<MediaDto | null>(null)
+const errorMessage = ref("")
 
 useHead({ title: "メディア管理" })
 
@@ -20,9 +22,12 @@ async function remove() {
 
   itemToDelete.value = null
   deletingId.value = item.id
+  errorMessage.value = ""
   try {
     await $fetch(`/api/media/${item.id}`, { method: "DELETE" })
     await refresh()
+  } catch (error) {
+    errorMessage.value = apiErrorMessage(error, "メディアを削除できませんでした")
   } finally {
     deletingId.value = null
   }
@@ -59,6 +64,7 @@ async function remove() {
     <p v-if="items && items.length === 0" class="text-sm text-muted-foreground">
       まだメディアがありません
     </p>
+    <p v-if="errorMessage" class="mt-4 text-sm text-destructive">{{ errorMessage }}</p>
     <ConfirmDialog
       :open="!!itemToDelete"
       title="メディアを削除しますか？"
