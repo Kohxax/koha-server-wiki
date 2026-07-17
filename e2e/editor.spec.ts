@@ -60,8 +60,27 @@ test("desktop editor shows frontmatter, Markdown, and preview side by side", asy
   await page.goto(`/edit/e2e-desktop-${Date.now()}`)
 
   await expect(page.getByLabel("タイトル")).toBeVisible()
+  await expect(page.getByLabel("パス")).toHaveValue(/e2e-desktop-/)
   await expect(page.locator("#editor-panel")).toBeVisible()
   await expect(page.locator("#preview-panel")).toBeVisible()
+  await expect.poll(async () => {
+    const editor = await page.locator("#editor-panel").boundingBox()
+    const saveButton = await page.getByRole("button", { name: "保存" }).boundingBox()
+    return !!editor && !!saveButton && saveButton.x + saveButton.width >= editor.x + editor.width
+  }).toBeTruthy()
+})
+
+test("save moves a page to its edited path", async ({ page }) => {
+  const oldPath = `e2e-move-old-${Date.now()}`
+  const newPath = `e2e-move-new-${Date.now()}`
+
+  await page.goto(`/edit/${oldPath}`)
+  await page.getByLabel("タイトル").fill("移動テストページ")
+  await page.getByLabel("パス").fill(newPath)
+  await page.getByRole("button", { name: "保存" }).click()
+
+  await expect(page).toHaveURL(`/wiki/${newPath}`)
+  await expect(page.getByRole("heading", { name: "移動テストページ" })).toBeVisible()
 })
 
 test("editor tabs fit the viewport and work on mobile", async ({ page }) => {
@@ -72,7 +91,7 @@ test("editor tabs fit the viewport and work on mobile", async ({ page }) => {
   await page.locator("aside").getByRole("button", { name: "サイドバーを閉じる" }).click({ force: true })
 
   await expect(page.getByRole("tab")).toHaveCount(3)
-  await page.getByRole("tab", { name: "フロントマター" }).click()
+  await page.getByRole("tab", { name: "ページ設定" }).click()
   await page.getByLabel("タイトル").fill("モバイル編集")
 
   await page.getByRole("tab", { name: "Markdown" }).click()

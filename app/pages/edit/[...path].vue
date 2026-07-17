@@ -16,30 +16,36 @@ const { data: existing } = await useFetch<Page>(() => `/api/pages/${path.value}`
 const title = ref(existing.value?.title ?? path.value.split("/").pop() ?? "")
 const description = ref(existing.value?.description ?? "")
 const content = ref(existing.value?.content ?? "")
+const pagePath = ref(path.value)
 const savedTitle = ref(title.value)
 const savedDescription = ref(description.value)
 const savedContent = ref(content.value)
+const savedPath = ref(pagePath.value)
 const saving = ref(false)
 const errorMessage = ref("")
 const leaveDialogOpen = ref(false)
 const activeTab = ref<"frontmatter" | "editor" | "preview">("editor")
 let resolveLeave: ((leave: boolean) => void) | null = null
 
-const isDirty = computed(() => title.value !== savedTitle.value || description.value !== savedDescription.value || content.value !== savedContent.value)
+const isDirty = computed(() => title.value !== savedTitle.value || description.value !== savedDescription.value || content.value !== savedContent.value || pagePath.value !== savedPath.value)
 
 async function save() {
   saving.value = true
   errorMessage.value = ""
   try {
-    await $fetch<Page>(`/api/pages/${path.value}`, {
+    const savedPage = await $fetch<Page>(`/api/pages/${path.value}`, {
       method: "PUT",
-      body: { title: title.value, description: description.value, content: content.value },
+      body: { path: pagePath.value, title: title.value, description: description.value, content: content.value },
     })
     savedTitle.value = title.value
     savedDescription.value = description.value
     savedContent.value = content.value
+    pagePath.value = savedPage.path
+    savedPath.value = savedPage.path
     clearNuxtData(`page:${path.value}`)
-    await navigateTo(path.value === "home" ? "/" : `/wiki/${path.value}`)
+    clearNuxtData(`page:${savedPage.path}`)
+    await Promise.all([refreshNuxtData("sidebar"), refreshNuxtData("editor-page-links")])
+    await navigateTo(savedPage.path === "home" ? "/" : `/wiki/${savedPage.path}`)
   } catch {
     errorMessage.value = "保存に失敗しました"
   } finally {
@@ -107,7 +113,7 @@ onBeforeUnmount(() => {
             :aria-selected="activeTab === 'frontmatter'"
             aria-controls="frontmatter-panel"
             @click="activeTab = 'frontmatter'"
-          >フロントマター</UiButton>
+          >ページ設定</UiButton>
           <UiButton
             id="editor-tab"
             role="tab"
@@ -129,13 +135,13 @@ onBeforeUnmount(() => {
             @click="activeTab = 'preview'"
           >プレビュー</UiButton>
         </div>
-        <div class="mb-2 flex items-center gap-2">
+        <div class="mb-2 ml-auto flex items-center gap-2">
           <span v-if="isDirty" class="text-sm text-muted-foreground">未保存の変更があります</span>
           <UiButton variant="outline" :disabled="saving" @click="cancel">キャンセル</UiButton>
           <UiButton :disabled="saving" @click="save">保存</UiButton>
         </div>
       </div>
-      <div class="grid min-h-0 flex-1 gap-4 md:grid-cols-[minmax(14rem,0.7fr)_minmax(0,1fr)_minmax(0,1fr)]">
+      <div class="grid min-h-0 flex-1 gap-4 md:grid-cols-[minmax(12rem,0.5fr)_minmax(0,1fr)_minmax(0,1fr)]">
         <div
           id="frontmatter-panel"
           role="tabpanel"
@@ -144,6 +150,7 @@ onBeforeUnmount(() => {
           :class="activeTab === 'frontmatter' ? 'block' : 'hidden md:block'"
         >
           <div class="space-y-4">
+            <h2 class="text-sm font-semibold">ページ設定</h2>
             <div class="space-y-1">
               <label class="text-sm font-medium" for="edit-title">タイトル</label>
               <UiInput id="edit-title" v-model="title" />
@@ -151,6 +158,12 @@ onBeforeUnmount(() => {
             <div class="space-y-1">
               <label class="text-sm font-medium" for="edit-description">説明 <span class="text-muted-foreground">(任意)</span></label>
               <UiTextarea id="edit-description" v-model="description" class="min-h-28 resize-y" placeholder="ページの説明を入力" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm font-medium" for="edit-path">パス</label>
+              <UiInput id="edit-path" v-model="pagePath" :disabled="path === 'home'" placeholder="build/farm" />
+              <p v-if="path === 'home'" class="text-xs text-muted-foreground">トップページのパスは変更できません</p>
+              <p v-else class="text-xs text-muted-foreground">変更すると既存の内部リンクは自動更新されません</p>
             </div>
           </div>
         </div>
