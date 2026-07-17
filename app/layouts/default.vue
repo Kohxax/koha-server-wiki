@@ -13,5 +13,6 @@ const sidebarOpen = useState('sidebar-open', () => true)
         </div>
       </main>
     </div>
+    <ScrollToTop />
   </div>
 </template>
