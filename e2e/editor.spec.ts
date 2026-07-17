@@ -55,3 +55,37 @@ test("image insertion updates the editor preview", async ({ page }) => {
   await expect(page.getByRole("dialog")).toBeHidden()
   await expect(page.locator(`img[alt="${imageName}"]`)).toBeVisible()
 })
+
+test("desktop editor shows frontmatter, Markdown, and preview side by side", async ({ page }) => {
+  await page.goto(`/edit/e2e-desktop-${Date.now()}`)
+
+  await expect(page.getByLabel("タイトル")).toBeVisible()
+  await expect(page.locator("#editor-panel")).toBeVisible()
+  await expect(page.locator("#preview-panel")).toBeVisible()
+})
+
+test("editor tabs fit the viewport and work on mobile", async ({ page }) => {
+  const path = `e2e-mobile-${Date.now()}`
+
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(`/edit/${path}`)
+  await page.locator("aside").getByRole("button", { name: "サイドバーを閉じる" }).click({ force: true })
+
+  await expect(page.getByRole("tab")).toHaveCount(3)
+  await page.getByRole("tab", { name: "フロントマター" }).click()
+  await page.getByLabel("タイトル").fill("モバイル編集")
+
+  await page.getByRole("tab", { name: "Markdown" }).click()
+  const textarea = page.locator("textarea").first()
+  const editorScroller = textarea.locator("xpath=..")
+  await textarea.fill("# モバイルの内容")
+  await expect(textarea).toBeVisible()
+  await expect.poll(() => editorScroller.evaluate((element) => element.getBoundingClientRect().bottom <= window.innerHeight)).toBeTruthy()
+  await expect.poll(() => editorScroller.evaluate((element) => {
+    element.scrollTop = element.scrollHeight
+    return element.scrollTop > 0
+  })).toBeTruthy()
+
+  await page.getByRole("tab", { name: "プレビュー" }).click()
+  await expect(page.getByRole("heading", { name: "モバイルの内容" })).toBeVisible()
+})

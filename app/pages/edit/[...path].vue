@@ -22,6 +22,7 @@ const savedContent = ref(content.value)
 const saving = ref(false)
 const errorMessage = ref("")
 const leaveDialogOpen = ref(false)
+const activeTab = ref<"frontmatter" | "editor" | "preview">("editor")
 let resolveLeave: ((leave: boolean) => void) | null = null
 
 const isDirty = computed(() => title.value !== savedTitle.value || description.value !== savedDescription.value || content.value !== savedContent.value)
@@ -94,24 +95,82 @@ onBeforeUnmount(() => {
     <h1 class="shrink-0 text-xl font-semibold">
       {{ existing ? 'ページを編集' : 'ページを作成' }}: {{ path }}
     </h1>
-    <div class="shrink-0 space-y-3">
-      <label class="text-sm font-medium" for="edit-title">タイトル</label>
-      <UiInput id="edit-title" v-model="title" class="max-w-md" />
-      <div class="space-y-1">
-        <label class="text-sm font-medium" for="edit-description">説明 <span class="text-muted-foreground">(任意)</span></label>
-        <UiTextarea id="edit-description" v-model="description" class="min-h-20 max-w-2xl resize-y" placeholder="ページの説明を入力" />
-      </div>
-    </div>
     <div class="flex min-h-0 flex-1 flex-col">
       <div class="flex shrink-0 flex-wrap items-center justify-between gap-2">
-        <span class="text-sm font-medium">本文 (Markdown)</span>
-        <div class="flex items-center gap-2 mb-2">
+        <div role="tablist" aria-label="編集内容" class="flex items-center gap-1 md:hidden">
+          <UiButton
+            id="frontmatter-tab"
+            role="tab"
+            type="button"
+            size="sm"
+            :variant="activeTab === 'frontmatter' ? 'secondary' : 'ghost'"
+            :aria-selected="activeTab === 'frontmatter'"
+            aria-controls="frontmatter-panel"
+            @click="activeTab = 'frontmatter'"
+          >フロントマター</UiButton>
+          <UiButton
+            id="editor-tab"
+            role="tab"
+            type="button"
+            size="sm"
+            :variant="activeTab === 'editor' ? 'secondary' : 'ghost'"
+            :aria-selected="activeTab === 'editor'"
+            aria-controls="editor-panel"
+            @click="activeTab = 'editor'"
+          >Markdown</UiButton>
+          <UiButton
+            id="preview-tab"
+            role="tab"
+            type="button"
+            size="sm"
+            :variant="activeTab === 'preview' ? 'secondary' : 'ghost'"
+            :aria-selected="activeTab === 'preview'"
+            aria-controls="preview-panel"
+            @click="activeTab = 'preview'"
+          >プレビュー</UiButton>
+        </div>
+        <div class="mb-2 flex items-center gap-2">
           <span v-if="isDirty" class="text-sm text-muted-foreground">未保存の変更があります</span>
           <UiButton variant="outline" :disabled="saving" @click="cancel">キャンセル</UiButton>
           <UiButton :disabled="saving" @click="save">保存</UiButton>
         </div>
       </div>
-      <MarkdownEditor v-model="content" />
+      <div class="grid min-h-0 flex-1 gap-4 md:grid-cols-[minmax(14rem,0.7fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <div
+          id="frontmatter-panel"
+          role="tabpanel"
+          aria-labelledby="frontmatter-tab"
+          class="min-h-0 overflow-auto border p-4"
+          :class="activeTab === 'frontmatter' ? 'block' : 'hidden md:block'"
+        >
+          <div class="space-y-4">
+            <div class="space-y-1">
+              <label class="text-sm font-medium" for="edit-title">タイトル</label>
+              <UiInput id="edit-title" v-model="title" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm font-medium" for="edit-description">説明 <span class="text-muted-foreground">(任意)</span></label>
+              <UiTextarea id="edit-description" v-model="description" class="min-h-28 resize-y" placeholder="ページの説明を入力" />
+            </div>
+          </div>
+        </div>
+        <MarkdownEditor
+          id="editor-panel"
+          role="tabpanel"
+          aria-labelledby="editor-tab"
+          v-model="content"
+          view="edit"
+          :class="activeTab === 'editor' ? 'flex' : 'hidden md:flex'"
+        />
+        <MarkdownEditor
+          id="preview-panel"
+          role="tabpanel"
+          aria-labelledby="preview-tab"
+          v-model="content"
+          view="preview"
+          :class="activeTab === 'preview' ? 'flex' : 'hidden md:flex'"
+        />
+      </div>
     </div>
     <p v-if="errorMessage" class="shrink-0 text-sm text-destructive">
       {{ errorMessage }}
