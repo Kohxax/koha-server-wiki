@@ -1,7 +1,6 @@
-import { eq } from "drizzle-orm"
 import { isValidPagePath, normalizePagePath } from "../../../shared/utils/page-path"
 import { useDb } from "../../database/client"
-import { pages } from "../../database/schema"
+import { deletePage } from "../../services/pages"
 
 export default defineEventHandler(async (event) => {
   await requireEditor(event)
@@ -11,11 +10,6 @@ export default defineEventHandler(async (event) => {
   if (!isValidPagePath(path))
     throw createError({ statusCode: 400, statusMessage: "Invalid page path" })
 
-  const db = useDb()
-  const [existing] = await db.select().from(pages).where(eq(pages.path, path))
-  if (!existing)
-    throw createError({ statusCode: 404, statusMessage: "Page not found" })
-
-  await db.delete(pages).where(eq(pages.id, existing.id))
+  await deletePage(useDb(), path)
   return { ok: true }
 })

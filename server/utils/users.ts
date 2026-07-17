@@ -20,8 +20,9 @@ export async function upsertDiscordUser(input: {
   const [existing] = await db.select().from(users).where(eq(users.discordId, input.discordId))
 
   if (existing) {
+    const role = adminDiscordIds().includes(input.discordId) ? "admin" : existing.role
     const [updated] = await db.update(users)
-      .set({ username: input.username, avatarUrl: input.avatarUrl ?? null })
+      .set({ username: input.username, avatarUrl: input.avatarUrl ?? null, role })
       .where(eq(users.id, existing.id))
       .returning()
     if (!updated)

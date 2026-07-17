@@ -22,6 +22,7 @@ const savedTitle = ref(title.value)
 const savedDescription = ref(description.value)
 const savedContent = ref(content.value)
 const savedPath = ref(pagePath.value)
+const expectedUpdatedAt = ref(existing.value?.updatedAt ?? null)
 const saving = ref(false)
 const errorMessage = ref("")
 const leaveDialogOpen = ref(false)
@@ -36,13 +37,14 @@ async function save() {
   try {
     const savedPage = await $fetch<PageDto>(`/api/pages/${path.value}`, {
       method: "PUT",
-      body: { path: pagePath.value, title: title.value, description: description.value, content: content.value },
+      body: { path: pagePath.value, title: title.value, description: description.value, content: content.value, expectedUpdatedAt: expectedUpdatedAt.value },
     })
     savedTitle.value = title.value
     savedDescription.value = description.value
     savedContent.value = content.value
     pagePath.value = savedPage.path
     savedPath.value = savedPage.path
+    expectedUpdatedAt.value = savedPage.updatedAt
     clearNuxtData(`page:${path.value}`)
     clearNuxtData(`page:${savedPage.path}`)
     await Promise.all([refreshNuxtData("sidebar"), refreshNuxtData("editor-page-links")])
