@@ -38,7 +38,7 @@ useHead({ title: () => page.value?.title ?? props.path })
       ページの読み込み中にエラーが発生しました。
     </p>
   </div>
-  <MDC v-else-if="page" :key="`${page.path}:${page.updatedAt}`" :cache-key="`page-mdc:${page.path}:${page.updatedAt}`" :value="page.content" :partial="false" v-slot="{ body, data, toc }">
+  <MDC v-else-if="page" :key="`${page.path}:${page.updatedAt}`" :cache-key="`page-mdc:${page.path}:${page.updatedAt}`" :value="page.content" :parser-options="{ toc: { depth: 5 } }" :partial="false" v-slot="{ body, data, toc }">
     <div v-if="body" class="mx-auto grid max-w-7xl gap-x-8 gap-y-0 lg:grid-cols-[minmax(0,48rem)_14rem] lg:justify-center">
       <div class="mb-8 lg:col-span-2">
         <div class="flex items-center justify-between gap-4">
@@ -56,11 +56,7 @@ useHead({ title: () => page.value?.title ?? props.path })
         <section v-if="toc?.links?.length" class="border bg-muted/30 p-4 transition-colors">
           <h2 class="mb-3 font-semibold">目次</h2>
           <nav>
-            <ul class="space-y-2">
-              <li v-for="entry in toc.links" :key="entry.id" :class="{ 'pl-3': entry.depth > 2 }">
-                <a :href="`#${entry.id}`" class="text-muted-foreground hover:text-primary">{{ entry.text }}</a>
-              </li>
-            </ul>
+            <TocTree :entries="toc.links" />
           </nav>
         </section>
         <section class="border bg-muted/30 p-4 text-muted-foreground">
