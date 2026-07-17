@@ -17,7 +17,6 @@ const isDark = computed({
 })
 
 const canEdit = computed(() => user.value?.role === 'editor' || user.value?.role === 'admin')
-const isAdmin = computed(() => user.value?.role === 'admin')
 const searchQuery = ref('')
 const suggestions = ref<SearchResult[]>([])
 const suggestionsStatus = ref<'idle' | 'pending' | 'success' | 'error'>('idle')
@@ -175,21 +174,11 @@ function handleSearchKeydown(event: KeyboardEvent) {
         <span class="hidden sm:inline">新規作成</span>
       </UiButton>
     </NuxtLink>
-    <UiDropdownMenu v-if="canEdit">
-      <UiDropdownMenuTrigger as-child>
+    <NuxtLink v-if="canEdit" to="/settings">
         <UiButton variant="ghost" size="icon" aria-label="管理メニュー" class="!text-white hover:!bg-white/[0.16] hover:!text-white">
           <SettingsIcon />
         </UiButton>
-      </UiDropdownMenuTrigger>
-      <UiDropdownMenuContent align="end" class="grass-header-menu">
-        <UiDropdownMenuItem as-child>
-          <NuxtLink to="/admin/media">メディア管理</NuxtLink>
-        </UiDropdownMenuItem>
-        <UiDropdownMenuItem v-if="isAdmin" as-child>
-          <NuxtLink to="/admin/users">ユーザー管理</NuxtLink>
-        </UiDropdownMenuItem>
-      </UiDropdownMenuContent>
-    </UiDropdownMenu>
+    </NuxtLink>
     <div class="flex items-center gap-1.5">
       <SunIcon class="size-4 !text-white/70" />
       <UiSwitch

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MenuIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, SettingsIcon } from '@lucide/vue'
+import { MenuIcon, PanelLeftCloseIcon, PanelLeftOpenIcon } from '@lucide/vue'
 import type { TreeNode } from '~~/server/utils/tree'
 
 interface SidebarResponse {
@@ -9,9 +9,7 @@ interface SidebarResponse {
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ toggle: [] }>()
 
-const { user } = useUserSession()
 const { data: sidebar } = await useFetch<SidebarResponse>('/api/sidebar', { key: 'sidebar' })
-const canEdit = computed(() => user.value?.role === 'editor' || user.value?.role === 'admin')
 </script>
 
 <template>
@@ -37,12 +35,6 @@ const canEdit = computed(() => user.value?.role === 'editor' || user.value?.role
           ページがまだありません
         </p>
       </UiScrollArea>
-      <NuxtLink v-if="canEdit && props.open" to="/admin/sidebar" class="w-64 border-t p-2">
-        <UiButton variant="ghost" size="sm" class="w-full justify-start" title="サイドバー設定">
-          <SettingsIcon />
-          サイドバー設定
-        </UiButton>
-      </NuxtLink>
     </aside>
     <UiButton
       v-if="!props.open"

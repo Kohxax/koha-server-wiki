@@ -12,7 +12,7 @@ catch {
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["server/**/*.test.ts", "shared/**/*.test.ts"],
+    include: ["app/**/*.test.ts", "server/**/*.test.ts", "shared/**/*.test.ts"],
   },
   resolve: {
     alias: {
