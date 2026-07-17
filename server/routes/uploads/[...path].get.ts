@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
   const ext = extname(raw).slice(1).toLowerCase()
   const stats = statSync(filePath)
-  const etag = `W/\"${stats.size}-${Math.floor(stats.mtimeMs)}\"`
+  const etag = `W/"${stats.size}-${Math.floor(stats.mtimeMs)}"`
   if (getHeader(event, "if-none-match") === etag) {
     setResponseStatus(event, 304)
     return null

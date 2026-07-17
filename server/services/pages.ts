@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm"
-import { useDb } from "../database/client"
+import type { useDb } from "../database/client"
 import type { User } from "../database/schema"
 import { pageRevisions, pages, settings } from "../database/schema"
 import type { TreeNode } from "../../shared/types/api"
