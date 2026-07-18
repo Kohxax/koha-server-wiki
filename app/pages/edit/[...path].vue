@@ -31,7 +31,7 @@ let resolveLeave: ((leave: boolean) => void) | null = null
 
 const isDirty = computed(() => title.value !== savedTitle.value || description.value !== savedDescription.value || content.value !== savedContent.value || pagePath.value !== savedPath.value)
 
-async function save() {
+async function save(returnToPage = true) {
   saving.value = true
   errorMessage.value = ""
   try {
@@ -48,7 +48,8 @@ async function save() {
     clearNuxtData(`page:${path.value}`)
     clearNuxtData(`page:${savedPage.path}`)
     await Promise.all([refreshNuxtData("sidebar"), refreshNuxtData("editor-page-links")])
-    await navigateTo(wikiPageUrl(savedPage.path))
+    if (returnToPage)
+      await navigateTo(wikiPageUrl(savedPage.path))
   } catch {
     errorMessage.value = "保存に失敗しました"
   } finally {
@@ -85,7 +86,7 @@ function handleKeydown(event: KeyboardEvent) {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s" && !event.isComposing) {
     event.preventDefault()
     if (isDirty.value && !saving.value)
-      save()
+      void save(false)
   }
 }
 

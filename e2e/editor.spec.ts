@@ -37,6 +37,21 @@ test("create, edit with live preview, and save", async ({ page }) => {
   await expect(page).toHaveURL(`/wiki/${path}`)
 })
 
+test("Ctrl+S saves without leaving the editor", async ({ page }) => {
+  const path = `e2e-shortcut-save-${Date.now()}`
+
+  await page.goto(`/edit/${path}`)
+  await page.getByLabel("タイトル").fill("ショートカット保存")
+  await markdownEditor(page).fill("# 保存済みの内容")
+  await page.keyboard.press("Control+s")
+
+  await expect(page).toHaveURL(`/edit/${path}`)
+  await expect(page.getByText("未保存の変更があります")).toBeHidden()
+  await page.reload()
+  await expect(page.getByLabel("タイトル")).toHaveValue("ショートカット保存")
+  await expect(markdownEditor(page)).toHaveValue("# 保存済みの内容")
+})
+
 test("image insertion updates the editor preview", async ({ page }) => {
   const path = `e2e-image-${Date.now()}`
   const imageName = `preview-${Date.now()}.svg`
