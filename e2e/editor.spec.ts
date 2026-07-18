@@ -65,14 +65,15 @@ test("image insertion updates the editor preview", async ({ page }) => {
     },
   })
   expect(upload.ok()).toBeTruthy()
+  const media = await upload.json() as { filename: string }
 
   await page.goto(`/edit/${path}`)
   await page.getByTitle("画像").click()
   await page.getByTitle(imageName).click()
 
-  await expect(markdownEditor(page)).toHaveValue(new RegExp(`!\\[${imageName}\\]`))
+  await expect(markdownEditor(page)).toHaveValue(`![](/uploads/${media.filename})`)
   await expect(page.getByRole("dialog")).toBeHidden()
-  await expect(page.locator(`img[alt="${imageName}"]`)).toBeVisible()
+  await expect(page.locator('#preview-panel img[alt=""]')).toBeVisible()
 })
 
 test("article images open in the viewer", async ({ page }) => {
