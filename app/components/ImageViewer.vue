@@ -13,7 +13,7 @@ const label = computed(() => props.alt ? `画像を拡大: ${props.alt}` : "画�
 
 <template>
   <UiDialog v-model:open="open">
-    <button type="button" class="block max-w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" :aria-label="label" @click="open = true">
+    <button type="button" class="block w-full max-w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" :aria-label="label" @click="open = true">
       <img :src="src" :alt="alt" class="mx-auto h-auto max-w-full border border-border" loading="lazy">
     </button>
     <UiDialogContent class="max-h-[calc(100vh-2rem)] max-w-[calc(100vw-2rem)] border-border bg-background p-2 sm:max-w-6xl">
