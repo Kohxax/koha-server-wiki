@@ -63,8 +63,8 @@ function handleSaved() {
         draw.ioで再編集
       </UiButton>
     </div>
-    <figcaption v-if="alt" class="mt-2 text-center text-xs text-muted-foreground">
-      {{ alt }}
+    <figcaption class="mt-2 text-center text-xs text-muted-foreground">
+      <MDCSlot unwrap="p">{{ alt }}</MDCSlot>
     </figcaption>
     <p v-if="errorMessage" class="mt-2 text-center text-xs text-destructive">
       {{ errorMessage }}

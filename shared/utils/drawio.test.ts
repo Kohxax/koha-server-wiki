@@ -109,4 +109,22 @@ describe("createDiagramMarkdown", () => {
       }),
     ]))
   })
+
+  it("passes diagram body text to the default slot for captions", async () => {
+    const parsed = await parseMarkdown(
+      "::diagram{src=\"/uploads/diagram.svg\" media-id=\"42\"}\n農場の配置図\n::",
+    )
+
+    expect(parsed.body.children).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        tag: "diagram",
+        children: [
+          expect.objectContaining({
+            tag: "p",
+            children: [{ type: "text", value: "農場の配置図" }],
+          }),
+        ],
+      }),
+    ]))
+  })
 })
