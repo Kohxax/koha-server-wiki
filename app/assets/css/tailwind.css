@@ -179,13 +179,14 @@
   }
 
   .wiki-scrollbar {
-    scrollbar-color: #18181b transparent;
+    scrollbar-color: #22222b transparent;
     scrollbar-width: thin;
   }
 
   .wiki-scrollbar::-webkit-scrollbar {
     width: 10px;
     height: 10px;
+    background: transparent;
   }
 
   .wiki-scrollbar::-webkit-scrollbar-track,
@@ -194,7 +195,7 @@
   }
 
   .wiki-scrollbar::-webkit-scrollbar-thumb {
-    background: #18181b;
+    background: #22222b;
     border-radius: 0;
   }
 
