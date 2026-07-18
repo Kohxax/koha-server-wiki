@@ -7,6 +7,7 @@ import {
   dataUrlToBlob,
   DRAWIO_ORIGIN,
   parseDrawioMessage,
+  shouldHandleDrawioMessage,
 } from "~~/shared/utils/drawio"
 
 const props = defineProps<{
@@ -22,6 +23,7 @@ const emit = defineEmits<{
 
 const iframeRef = ref<HTMLIFrameElement | null>(null)
 const saving = ref(false)
+const exportRequested = ref(false)
 const errorMessage = ref("")
 
 const iframeSrc = computed(() => `${DRAWIO_ORIGIN}/?embed=1&proto=json&spin=1&ui=min`)
@@ -31,6 +33,9 @@ function postToDrawio(message: Record<string, unknown>) {
 }
 
 async function handleExport(dataUrl: string) {
+  if (saving.value)
+    return
+
   saving.value = true
   errorMessage.value = ""
   try {
@@ -55,13 +60,19 @@ async function handleExport(dataUrl: string) {
     open.value = false
   } catch {
     errorMessage.value = "図の保存に失敗しました"
+    exportRequested.value = false
   } finally {
     saving.value = false
   }
 }
 
 function onMessage(event: MessageEvent) {
-  if (event.origin !== DRAWIO_ORIGIN)
+  if (!shouldHandleDrawioMessage({
+    origin: event.origin,
+    isOpen: open.value,
+    source: event.source,
+    iframeWindow: iframeRef.value?.contentWindow ?? null,
+  }))
     return
 
   const msg = parseDrawioMessage(event.data)
@@ -73,16 +84,28 @@ function onMessage(event: MessageEvent) {
       postToDrawio(buildLoadAction(props.initialXml ?? ""))
       break
     case "save":
+      if (saving.value || exportRequested.value)
+        return
+      exportRequested.value = true
       postToDrawio(buildExportRequestAction(msg.xml))
       break
     case "export":
-      handleExport(msg.data as string)
+      if (typeof msg.data === "string")
+        void handleExport(msg.data)
       break
     case "exit":
       open.value = false
       break
   }
 }
+
+watch(open, (isOpen) => {
+  if (isOpen) {
+    saving.value = false
+    exportRequested.value = false
+    errorMessage.value = ""
+  }
+})
 
 onMounted(() => window.addEventListener("message", onMessage))
 onBeforeUnmount(() => window.removeEventListener("message", onMessage))

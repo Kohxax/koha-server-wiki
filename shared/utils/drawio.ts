@@ -23,6 +23,20 @@ export function parseDrawioMessage(raw: string): DrawioMessage | null {
   }
 }
 
+export function shouldHandleDrawioMessage({
+  origin,
+  isOpen,
+  source,
+  iframeWindow,
+}: {
+  origin: string
+  isOpen: boolean
+  source: MessageEventSource | null
+  iframeWindow: Window | null
+}): boolean {
+  return origin === DRAWIO_ORIGIN && isOpen && source === iframeWindow
+}
+
 export function buildLoadAction(xml: string) {
   return { action: "load", xml: xml || EMPTY_DIAGRAM_XML, autosave: 1 }
 }

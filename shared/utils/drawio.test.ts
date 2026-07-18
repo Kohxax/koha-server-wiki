@@ -9,6 +9,7 @@ import {
   DRAWIO_ORIGIN,
   EMPTY_DIAGRAM_XML,
   parseDrawioMessage,
+  shouldHandleDrawioMessage,
 } from "./drawio"
 
 describe("parseDrawioMessage", () => {
@@ -51,6 +52,30 @@ describe("draw.io postMessage protocol (mocked message flow)", () => {
 
   it("only trusts messages from the draw.io origin", () => {
     expect(DRAWIO_ORIGIN).toBe("https://embed.diagrams.net")
+  })
+
+  it("only lets the active dialog handle messages from its own iframe", () => {
+    const activeIframe = {} as Window
+    const anotherIframe = {} as Window
+
+    expect(shouldHandleDrawioMessage({
+      origin: DRAWIO_ORIGIN,
+      isOpen: true,
+      source: activeIframe,
+      iframeWindow: activeIframe,
+    })).toBe(true)
+    expect(shouldHandleDrawioMessage({
+      origin: DRAWIO_ORIGIN,
+      isOpen: false,
+      source: activeIframe,
+      iframeWindow: activeIframe,
+    })).toBe(false)
+    expect(shouldHandleDrawioMessage({
+      origin: DRAWIO_ORIGIN,
+      isOpen: true,
+      source: anotherIframe,
+      iframeWindow: activeIframe,
+    })).toBe(false)
   })
 })
 
