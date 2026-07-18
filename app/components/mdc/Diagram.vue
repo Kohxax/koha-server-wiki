@@ -7,7 +7,7 @@ const props = withDefaults(defineProps<{
   mediaId?: string | number
 }>(), {
   src: "",
-  alt: "図",
+  alt: "",
   mediaId: "",
 })
 
@@ -63,7 +63,7 @@ function handleSaved() {
         draw.ioで再編集
       </UiButton>
     </div>
-    <figcaption class="mt-2 text-center text-xs text-muted-foreground">
+    <figcaption v-if="$slots.default || alt" class="mt-2 text-center text-xs text-muted-foreground">
       <MDCSlot unwrap="p">{{ alt }}</MDCSlot>
     </figcaption>
     <p v-if="errorMessage" class="mt-2 text-center text-xs text-destructive">
