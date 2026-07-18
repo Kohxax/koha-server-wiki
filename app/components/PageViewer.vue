@@ -81,8 +81,8 @@ useSeoMeta({
       <article data-image-viewer-group class="order-1 min-w-0">
         <MDCRenderer :body="body" :data="data" class="wiki-prose [&_img]:h-auto [&_img]:max-w-full" />
       </article>
-      <aside class="order-2 hidden space-y-6 text-sm lg:block">
-        <section v-if="toc?.links?.length" class="border border-sidebar-border bg-sidebar p-4 transition-colors dark:bg-muted/30">
+      <aside class="order-2 hidden self-start space-y-6 text-sm lg:sticky lg:top-20 lg:block">
+        <section v-if="toc?.links?.length" class="max-h-[calc(100dvh-12rem)] overflow-y-auto border border-sidebar-border bg-sidebar p-4 transition-colors dark:bg-muted/30">
           <h2 class="mb-3 font-semibold">目次</h2>
           <nav>
             <TocTree :entries="toc.links" @select="scrollToHeading" />

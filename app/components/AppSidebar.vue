@@ -16,7 +16,7 @@ const { data: sidebar } = await useFetch<SidebarDto>('/api/sidebar', { key: 'sid
       @click="emit('toggle')"
     />
     <aside
-      class="app-shell app-sidebar fixed top-14 bottom-0 left-0 z-50 flex w-64 shrink-0 flex-col overflow-hidden border-r bg-sidebar text-sidebar-foreground transition-transform duration-300 ease-out md:relative md:top-auto md:z-auto md:translate-x-0 md:transition-[width]"
+      class="app-shell app-sidebar fixed top-14 bottom-0 left-0 z-50 flex w-64 shrink-0 flex-col overflow-hidden border-r bg-sidebar text-sidebar-foreground transition-transform duration-300 ease-out md:sticky md:top-14 md:bottom-auto md:z-auto md:h-[calc(100dvh-3.5rem)] md:self-start md:translate-x-0 md:transition-[width]"
       :class="props.open ? 'translate-x-0 md:w-64' : '-translate-x-full md:w-12'"
     >
       <div class="flex shrink-0 border-b p-2" :class="props.open ? 'w-64 justify-end' : 'w-12 justify-center'">
