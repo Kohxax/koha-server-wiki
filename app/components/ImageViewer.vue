@@ -89,7 +89,7 @@ onBeforeUnmount(() => window.removeEventListener("image-viewer:open", handleView
           <XIcon />
         </UiButton>
       </div>
-      <div class="flex size-full items-center justify-center overflow-auto p-16">
+      <div data-image-viewer-stage class="flex size-full items-center justify-center overflow-auto p-16" @click.self="open = false">
         <img :src="src" :alt="alt" :class="expanded ? 'size-full object-contain' : 'max-h-full max-w-full object-contain'">
       </div>
       <UiButton

@@ -127,6 +127,39 @@ test("article images open in the viewer", async ({ page }) => {
   await expect(dialog).toBeHidden()
 })
 
+test("image viewer closes when its background is clicked", async ({ page }) => {
+  const path = `e2e-image-viewer-background-${Date.now()}`
+  const imageName = `viewer-background-${Date.now()}.svg`
+  const upload = await page.request.post("/api/media", {
+    multipart: {
+      file: {
+        name: imageName,
+        mimeType: "image/svg+xml",
+        buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>'),
+      },
+    },
+  })
+  expect(upload.ok()).toBeTruthy()
+  const media = await upload.json() as { filename: string }
+
+  const save = await page.request.put(`/api/pages/${path}`, {
+    data: {
+      title: "画像ビューアー背景クリック",
+      description: "",
+      content: `![${imageName}](/uploads/${media.filename})`,
+      expectedUpdatedAt: null,
+    },
+  })
+  expect(save.ok()).toBeTruthy()
+
+  await page.goto(`/wiki/${path}`)
+  await page.getByRole("button", { name: `画像を拡大: ${imageName}` }).click()
+  const dialog = page.getByRole("dialog")
+  await expect(dialog).toBeVisible()
+  await dialog.locator("[data-image-viewer-stage]").click({ position: { x: 4, y: 4 } })
+  await expect(dialog).toBeHidden()
+})
+
 test("re-editable diagram MDC markup displays the draw.io edit action", async ({ page }) => {
   const path = `e2e-re-editable-diagram-${Date.now()}`
   const upload = await page.request.post("/api/media", {
