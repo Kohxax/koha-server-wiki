@@ -178,22 +178,22 @@
     text-shadow: 0 1px 2px rgb(0 0 0 / 80%);
   }
 
-  .markdown-editor__scroll {
+  .wiki-scrollbar {
     scrollbar-color: #18181b transparent;
     scrollbar-width: thin;
   }
 
-  .markdown-editor__scroll::-webkit-scrollbar {
+  .wiki-scrollbar::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
 
-  .markdown-editor__scroll::-webkit-scrollbar-track,
-  .markdown-editor__scroll::-webkit-scrollbar-corner {
+  .wiki-scrollbar::-webkit-scrollbar-track,
+  .wiki-scrollbar::-webkit-scrollbar-corner {
     background: transparent;
   }
 
-  .markdown-editor__scroll::-webkit-scrollbar-thumb {
+  .wiki-scrollbar::-webkit-scrollbar-thumb {
     background: #18181b;
     border-radius: 0;
   }

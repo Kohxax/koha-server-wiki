@@ -44,7 +44,7 @@ function onDrop(event: DragEvent) {
 }
 
 function selectItem(item: MediaDto) {
-  emit("insert", `![${item.originalName}](/uploads/${item.filename})`)
+  emit("insert", `![](/uploads/${item.filename})`)
   open.value = false
 }
 
