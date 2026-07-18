@@ -77,29 +77,54 @@ test("image insertion updates the editor preview", async ({ page }) => {
 
 test("article images open in the viewer", async ({ page }) => {
   const path = `e2e-image-viewer-${Date.now()}`
-  const imageName = `viewer-${Date.now()}.svg`
-  const upload = await page.request.post("/api/media", {
-    multipart: {
-      file: {
-        name: imageName,
-        mimeType: "image/svg+xml",
-        buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>'),
+  const imageNames = [`viewer-first-${Date.now()}.svg`, `viewer-second-${Date.now()}.svg`]
+  const media = await Promise.all(imageNames.map(async (imageName) => {
+    const upload = await page.request.post("/api/media", {
+      multipart: {
+        file: {
+          name: imageName,
+          mimeType: "image/svg+xml",
+          buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>'),
+        },
       },
-    },
-  })
-  expect(upload.ok()).toBeTruthy()
-  const media = await upload.json() as { filename: string }
+    })
+    expect(upload.ok()).toBeTruthy()
+    return await upload.json() as { filename: string }
+  }))
 
   const save = await page.request.put(`/api/pages/${path}`, {
-    data: { title: "画像ビューアー", description: "", content: `![${imageName}](/uploads/${media.filename})`, expectedUpdatedAt: null },
+    data: {
+      title: "画像ビューアー",
+      description: "",
+      content: imageNames.map((imageName, index) => `![${imageName}](/uploads/${media[index].filename})`).join("\n\n"),
+      expectedUpdatedAt: null,
+    },
   })
   expect(save.ok()).toBeTruthy()
 
   await page.goto(`/wiki/${path}`)
-  await page.getByRole("button", { name: `画像を拡大: ${imageName}` }).click()
-  await expect(page.getByRole("dialog")).toBeVisible()
-  await page.keyboard.press("Escape")
-  await expect(page.getByRole("dialog")).toBeHidden()
+  const trigger = page.getByRole("button", { name: `画像を拡大: ${imageNames[0]}` })
+  const dialog = page.getByRole("dialog")
+  await expect.poll(async () => {
+    await trigger.click()
+    return await dialog.isVisible()
+  }).toBe(true)
+  await expect.poll(async () => {
+    const bounds = await dialog.boundingBox()
+    const viewport = page.viewportSize()
+    return !!bounds && !!viewport
+      && bounds.x === 0 && bounds.y === 0
+      && bounds.width === viewport.width && bounds.height === viewport.height
+  }).toBe(true)
+  await expect(dialog.locator(`img[alt="${imageNames[0]}"]`)).toBeVisible()
+  await expect(dialog.getByRole("button", { name: "前の画像" })).toBeHidden()
+  await dialog.getByRole("button", { name: "次の画像" }).click()
+  await expect(dialog.locator(`img[alt="${imageNames[1]}"]`)).toBeVisible()
+  await expect(dialog.getByRole("button", { name: "次の画像" })).toBeHidden()
+  await dialog.getByRole("button", { name: "拡大表示" }).click()
+  await expect(dialog.getByRole("button", { name: "通常表示" })).toBeVisible()
+  await dialog.getByRole("button", { name: "閉じる" }).click()
+  await expect(dialog).toBeHidden()
 })
 
 test("desktop editor shows frontmatter, Markdown, and preview side by side", async ({ page }) => {

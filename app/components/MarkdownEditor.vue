@@ -94,7 +94,7 @@ function insertMedia(markdown: string) {
         <UiTextarea ref="textareaRef" v-model="model" class="box-border block min-h-full resize-none border-0 pb-[calc(100vh-10rem)] font-mono" placeholder="Markdownで本文を入力" />
       </div>
     </div>
-    <div v-else class="min-h-0 flex-1 overflow-auto border border-sidebar-border bg-sidebar p-4 dark:bg-muted/20">
+    <div v-else data-image-viewer-group class="min-h-0 flex-1 overflow-auto border border-sidebar-border bg-sidebar p-4 dark:bg-muted/20">
       <MDCRenderer v-if="preview?.body" :body="preview.body" :data="preview.data" class="wiki-prose" />
     </div>
 
