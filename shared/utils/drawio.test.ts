@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest"
+import { parseMarkdown } from "@nuxtjs/mdc/runtime"
 import {
   buildExitAction,
   buildExportRequestAction,
   buildLoadAction,
+  createDiagramMarkdown,
   dataUrlToBlob,
   DRAWIO_ORIGIN,
   EMPTY_DIAGRAM_XML,
@@ -61,5 +63,25 @@ describe("dataUrlToBlob", () => {
     expect(blob.type).toBe("image/svg+xml")
     const text = await blob.text()
     expect(text).toBe(svg)
+  })
+})
+
+describe("createDiagramMarkdown", () => {
+  it("uses the re-editable MDC diagram format for newly created diagrams", () => {
+    expect(createDiagramMarkdown({ id: 42, filename: "diagram.svg" })).toBe(
+      "::diagram{src=\"/uploads/diagram.svg\" media-id=\"42\"}\n::",
+    )
+  })
+
+  it("is parsed as an MDC diagram component", async () => {
+    const markdown = createDiagramMarkdown({ id: 42, filename: "diagram.svg" })
+    const parsed = await parseMarkdown(markdown)
+
+    expect(parsed.body.children).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        tag: "diagram",
+        props: { src: "/uploads/diagram.svg", "media-id": "42" },
+      }),
+    ]))
   })
 })

@@ -9,6 +9,11 @@ export interface DrawioMessage {
   [key: string]: unknown
 }
 
+export interface DiagramMediaReference {
+  id: number
+  filename: string
+}
+
 export function parseDrawioMessage(raw: string): DrawioMessage | null {
   try {
     const parsed = JSON.parse(raw)
@@ -28,6 +33,10 @@ export function buildExportRequestAction(xml: unknown) {
 
 export function buildExitAction() {
   return { action: "exit" }
+}
+
+export function createDiagramMarkdown({ id, filename }: DiagramMediaReference) {
+  return `::diagram{src="/uploads/${filename}" media-id="${id}"}\n::`
 }
 
 export function dataUrlToBlob(dataUrl: string): Blob {

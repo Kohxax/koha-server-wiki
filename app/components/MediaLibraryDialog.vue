@@ -58,9 +58,8 @@ async function editDiagram(item: MediaDto) {
   drawioDialogOpen.value = true
 }
 
-function onDiagramInsert(markdown: string) {
-  emit("insert", markdown)
-  open.value = false
+async function onDiagramSaved() {
+  await refresh()
 }
 </script>
 
@@ -130,7 +129,7 @@ function onDiagramInsert(markdown: string) {
       v-model:open="drawioDialogOpen"
       :initial-xml="editingXml"
       :editing-media-id="editingMediaId"
-      @insert="onDiagramInsert"
+      @saved="onDiagramSaved"
     />
   </UiDialog>
 </template>

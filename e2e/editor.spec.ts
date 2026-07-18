@@ -127,6 +127,35 @@ test("article images open in the viewer", async ({ page }) => {
   await expect(dialog).toBeHidden()
 })
 
+test("re-editable diagram MDC markup displays the draw.io edit action", async ({ page }) => {
+  const path = `e2e-re-editable-diagram-${Date.now()}`
+  const upload = await page.request.post("/api/media", {
+    multipart: {
+      file: {
+        name: "diagram.svg",
+        mimeType: "image/svg+xml",
+        buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>'),
+      },
+      kind: "diagram",
+    },
+  })
+  expect(upload.ok()).toBeTruthy()
+  const media = await upload.json() as { id: number, filename: string }
+
+  const save = await page.request.put(`/api/pages/${path}`, {
+    data: {
+      title: "再編集可能な図表",
+      description: "",
+      content: `::diagram{src="/uploads/${media.filename}" media-id="${media.id}"}\n::`,
+      expectedUpdatedAt: null,
+    },
+  })
+  expect(save.ok()).toBeTruthy()
+
+  await page.goto(`/wiki/${path}`)
+  await expect(page.getByRole("button", { name: "draw.ioで再編集" })).toBeVisible()
+})
+
 test("desktop editor shows frontmatter, Markdown, and preview side by side", async ({ page }) => {
   await page.goto(`/edit/e2e-desktop-${Date.now()}`)
 

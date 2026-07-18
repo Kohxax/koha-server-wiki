@@ -3,6 +3,7 @@ import {
   buildExitAction,
   buildExportRequestAction,
   buildLoadAction,
+  createDiagramMarkdown,
   dataUrlToBlob,
   DRAWIO_ORIGIN,
   parseDrawioMessage,
@@ -14,7 +15,10 @@ const props = defineProps<{
 }>()
 
 const open = defineModel<boolean>("open", { default: false })
-const emit = defineEmits<{ insert: [markdown: string] }>()
+const emit = defineEmits<{
+  insert: [markdown: string]
+  saved: [media: { id: number, filename: string }]
+}>()
 
 const iframeRef = ref<HTMLIFrameElement | null>(null)
 const saving = ref(false)
@@ -35,15 +39,16 @@ async function handleExport(dataUrl: string) {
     form.append("file", blob, "diagram.svg")
 
     if (props.editingMediaId) {
-      const updated = await $fetch<{ filename: string }>(`/api/media/${props.editingMediaId}`, {
+      const updated = await $fetch<{ id: number, filename: string }>(`/api/media/${props.editingMediaId}`, {
         method: "PUT",
         body: form,
       })
-      emit("insert", `![図](/uploads/${updated.filename})`)
+      emit("saved", updated)
     } else {
       form.append("kind", "diagram")
-      const created = await $fetch<{ filename: string }>("/api/media", { method: "POST", body: form })
-      emit("insert", `![図](/uploads/${created.filename})`)
+      const created = await $fetch<{ id: number, filename: string }>("/api/media", { method: "POST", body: form })
+      emit("insert", createDiagramMarkdown(created))
+      emit("saved", created)
     }
 
     postToDrawio(buildExitAction())
