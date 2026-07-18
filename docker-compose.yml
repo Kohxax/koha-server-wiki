@@ -13,6 +13,7 @@ services:
       NUXT_ADMIN_DISCORD_IDS: ${NUXT_ADMIN_DISCORD_IDS}
       DATABASE_URL: postgres://${POSTGRES_USER:?POSTGRES_USER must be set}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@db:5432/${POSTGRES_DB:?POSTGRES_DB must be set}
       NUXT_UPLOAD_DIR: /data/uploads
+      NUXT_PUBLIC_SITE_URL: ${NUXT_PUBLIC_SITE_URL:-https://wiki.bokukoha.dev}
       # NUXT_DEV_AUTH_BYPASS is intentionally never referenced here so it can never
       # leak into the containerized production app, even if it's set in the local .env.
     volumes:

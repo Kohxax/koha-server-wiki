@@ -24,6 +24,7 @@ export default defineNuxtConfig({
     uploadDir: process.env.UPLOAD_DIR || fileURLToPath(new URL('./uploads', import.meta.url)),
     public: {
       devAuthBypass: !!process.env.NUXT_DEV_AUTH_BYPASS,
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || "",
     },
   },
   shadcn: {

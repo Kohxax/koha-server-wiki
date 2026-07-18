@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { HistoryIcon } from "@lucide/vue"
+import ogImage from "~/assets/images/face.webp?url&no-inline"
 import type { PageDetailDto } from "~~/shared/types/api"
+import { wikiPageUrl } from "~~/shared/utils/wiki-url"
 
 const props = defineProps<{ path: string }>()
 const { user } = useUserSession()
@@ -12,6 +14,13 @@ const { data: page, status, error } = await useFetch<PageDetailDto>(() => `/api/
 const canEdit = computed(() => user.value?.role === "editor" || user.value?.role === "admin")
 const notFound = computed(() => error.value?.statusCode === 404)
 const updatedAt = computed(() => page.value?.updatedAt ? new Date(page.value.updatedAt).toLocaleString("ja-JP") : "")
+const runtimeConfig = useRuntimeConfig()
+const requestUrl = useRequestURL()
+const siteOrigin = computed(() => (runtimeConfig.public.siteUrl || requestUrl.origin).replace(/\/$/, ""))
+const pageTitle = computed(() => page.value?.title ?? props.path)
+const pageDescription = computed(() => page.value?.description || "こは鯖の情報をまとめたMinecraftサーバーWiki")
+const canonicalUrl = computed(() => new URL(wikiPageUrl(page.value?.path ?? props.path), `${siteOrigin.value}/`).href)
+const ogImageUrl = computed(() => new URL(ogImage, `${siteOrigin.value}/`).href)
 
 function scrollToHeading(id: string) {
   const target = document.getElementById(id)
@@ -21,7 +30,21 @@ function scrollToHeading(id: string) {
   window.history.replaceState(null, "", `#${encodeURIComponent(id)}`)
 }
 
-useHead({ title: () => page.value?.title ?? props.path })
+useSeoMeta({
+  title: pageTitle,
+  description: pageDescription,
+  ogTitle: pageTitle,
+  ogDescription: pageDescription,
+  ogType: "article",
+  ogUrl: canonicalUrl,
+  ogImage: ogImageUrl,
+  ogImageAlt: "こは鯖wiki",
+  twitterCard: "summary",
+  twitterTitle: pageTitle,
+  twitterDescription: pageDescription,
+  twitterImage: ogImageUrl,
+  twitterImageAlt: "こは鯖wiki",
+})
 </script>
 
 <template>
