@@ -13,13 +13,12 @@ on:
       - 'README.md'
       - 'CHANGELOG.md'
 
-concurrency:
-  group: quality-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   test:
     runs-on: ubuntu-latest
+    concurrency:
+      group: quality-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     services:
       postgres:
         image: postgres:17-alpine
@@ -55,3 +54,30 @@ jobs:
       - run: pnpm test:e2e
       - run: pnpm build
       - run: docker build .
+
+  deploy:
+    name: Deploy production
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: self-hosted
+    environment: production
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+    env:
+      DEPLOY_PATH: ${{ vars.PRODUCTION_DEPLOY_PATH }}
+    steps:
+      - name: Verify deployment checkout
+        run: |
+          test -n "$DEPLOY_PATH"
+          test -f "$DEPLOY_PATH/docker-compose.yml"
+
+      - name: Pull latest code
+        run: git -C "$DEPLOY_PATH" pull --ff-only origin main
+
+      - name: Build and restart containers
+        working-directory: ${{ vars.PRODUCTION_DEPLOY_PATH }}
+        run: docker compose --profile prod up --build --detach --remove-orphans
+
+      - name: Clean up dangling images
+        run: docker image prune --force
