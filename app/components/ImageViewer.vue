@@ -101,7 +101,7 @@ onBeforeUnmount(() => window.removeEventListener("image-viewer:open", handleView
         <img
           :src="src"
           :alt="alt"
-          :class="expanded ? 'size-full object-contain' : 'max-h-full max-w-full object-contain'"
+          :class="expanded ? 'h-auto w-[200%] max-w-none shrink-0' : 'max-h-full max-w-full object-contain'"
           @click.stop="toggleControls"
         >
       </div>

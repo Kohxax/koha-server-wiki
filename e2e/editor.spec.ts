@@ -103,6 +103,7 @@ test("article images open in the viewer", async ({ page }) => {
   })
   expect(save.ok()).toBeTruthy()
 
+  await page.setViewportSize({ width: 390, height: 844 })
   await page.goto(`/wiki/${path}`)
   const trigger = page.getByRole("button", { name: `画像を拡大: ${imageNames[0]}` })
   const dialog = page.getByRole("dialog")
@@ -117,12 +118,22 @@ test("article images open in the viewer", async ({ page }) => {
       && bounds.x === 0 && bounds.y === 0
       && bounds.width === viewport.width && bounds.height === viewport.height
   }).toBe(true)
-  await expect(dialog.locator(`img[alt="${imageNames[0]}"]`)).toBeVisible()
+  const viewerImage = dialog.locator(`[data-image-viewer-stage] img[alt="${imageNames[0]}"]`)
+  await expect(viewerImage).toBeVisible()
   await expect(dialog.getByRole("button", { name: "前の画像" })).toBeHidden()
   await dialog.getByRole("button", { name: "次の画像" }).click()
   await expect(dialog.locator(`img[alt="${imageNames[1]}"]`)).toBeVisible()
   await expect(dialog.getByRole("button", { name: "次の画像" })).toBeHidden()
   await dialog.getByRole("button", { name: "拡大表示" }).click()
+  await expect(dialog.getByRole("button", { name: "通常表示" })).toBeVisible()
+  await expect.poll(async () => {
+    const bounds = await dialog.locator(`[data-image-viewer-stage] img[alt="${imageNames[1]}"]`).boundingBox()
+    return !!bounds && bounds.width > 700
+  }).toBeTruthy()
+  await dialog.locator(`[data-image-viewer-stage] img[alt="${imageNames[1]}"]`).click()
+  await expect(dialog.getByRole("button", { name: "通常表示" })).toBeHidden()
+  await expect(dialog.getByRole("button", { name: "閉じる" })).toBeHidden()
+  await dialog.locator(`[data-image-viewer-stage] img[alt="${imageNames[1]}"]`).click()
   await expect(dialog.getByRole("button", { name: "通常表示" })).toBeVisible()
   await dialog.getByRole("button", { name: "閉じる" }).click()
   await expect(dialog).toBeHidden()
