@@ -46,12 +46,26 @@ async function editDiagram() {
 function handleSaved() {
   imageVersion.value = Date.now()
 }
+
+function prepareDiagramLinks(event: Event) {
+  const object = event.currentTarget as HTMLObjectElement
+  object.contentDocument?.querySelectorAll("a").forEach((link) => {
+    link.setAttribute("target", "_blank")
+    link.setAttribute("rel", "noopener noreferrer")
+  })
+}
 </script>
 
 <template>
   <figure class="my-6">
     <div class="group relative">
-      <ImageViewer :src="imageSrc" :alt="alt" />
+      <object
+        :data="imageSrc"
+        type="image/svg+xml"
+        :aria-label="alt || '図表'"
+        class="block h-auto w-full max-w-full border border-border"
+        @load="prepareDiagramLinks"
+      />
       <UiButton
         v-if="canReedit"
         type="button"

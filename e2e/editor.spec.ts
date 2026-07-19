@@ -207,6 +207,66 @@ test("re-editable diagrams expose edit controls only in the editor", async ({ pa
   await expect(page.locator('iframe[title="draw.io editor"]')).toBeVisible()
 })
 
+test("diagram links open in a new tab without hiding the diagram or enabling scripts", async ({ page }) => {
+  const path = `e2e-diagram-link-${Date.now()}`
+  const targetPath = `e2e-diagram-target-${Date.now()}`
+  const sandboxErrors: string[] = []
+  page.on("console", (message) => {
+    if (message.type() === "error" && message.text().includes("allow-scripts"))
+      sandboxErrors.push(message.text())
+  })
+  const upload = await page.request.post("/api/media", {
+    multipart: {
+      file: {
+        name: "linked-diagram.svg",
+        mimeType: "image/svg+xml",
+        buffer: Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="100" viewBox="0 0 200 100"><a xlink:href="/wiki/${targetPath}"><rect width="200" height="100" fill="#22c55e"/><text x="20" y="55" fill="white">リンクを開く</text></a></svg>`),
+      },
+      kind: "diagram",
+    },
+  })
+  expect(upload.ok()).toBeTruthy()
+  const media = await upload.json() as { filename: string }
+
+  const served = await page.request.get(`/uploads/${media.filename}`)
+  const contentSecurityPolicy = served.headers()["content-security-policy"]
+  expect(contentSecurityPolicy).toContain("script-src 'none'")
+  expect(contentSecurityPolicy).not.toContain("sandbox")
+
+  const save = await page.request.put(`/api/pages/${path}`, {
+    data: {
+      title: "リンク付き図表",
+      description: "",
+      content: `::diagram{src="/uploads/${media.filename}" media-id="1"}\n::`,
+      expectedUpdatedAt: null,
+    },
+  })
+  expect(save.ok()).toBeTruthy()
+
+  await page.goto(`/wiki/${path}`)
+  const diagram = page.locator('object[aria-label="図表"]')
+  await expect(diagram).toBeVisible()
+  await expect.poll(() => diagram.evaluate((element) => {
+    const link = element.contentDocument?.querySelector("a")
+    return {
+      target: link?.getAttribute("target"),
+      rel: link?.getAttribute("rel"),
+    }
+  })).toEqual({ target: "_blank", rel: "noopener noreferrer" })
+
+  const popupPromise = page.waitForEvent("popup")
+  await diagram.click({ position: { x: 100, y: 50 } })
+  const popup = await popupPromise
+  await expect(popup).toHaveURL(new RegExp(`/wiki/${targetPath}$`))
+  await expect(page).toHaveURL(new RegExp(`/wiki/${path}$`))
+  await expect(diagram).toBeVisible()
+  await expect.poll(() => diagram.evaluate((element) => element.contentDocument?.URL)).toMatch(/\/uploads\/.*\.svg$/)
+
+  await page.reload()
+  await expect(diagram).toBeVisible()
+  expect(sandboxErrors).toEqual([])
+})
+
 test("desktop editor shows frontmatter, Markdown, and preview side by side", async ({ page }) => {
   await page.goto(`/edit/e2e-desktop-${Date.now()}`)
 
