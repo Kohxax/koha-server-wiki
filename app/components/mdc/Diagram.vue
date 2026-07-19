@@ -45,12 +45,33 @@ async function editDiagram() {
 function handleSaved() {
   refreshVersion(props.src)
 }
+
+const objectRef = ref<HTMLObjectElement>()
+
+function prepareDiagramLinks() {
+  objectRef.value?.contentDocument?.querySelectorAll("a").forEach((link) => {
+    link.setAttribute("target", "_blank")
+    link.setAttribute("rel", "noopener noreferrer")
+  })
+}
+
+// ハイドレーション前にloadイベントが発火済みの場合に備えたフォールバック
+onMounted(() => {
+  prepareDiagramLinks()
+})
 </script>
 
 <template>
   <figure class="my-6">
     <div class="group relative">
-      <ImageViewer :src="imageSrc" :alt="alt" />
+      <object
+        ref="objectRef"
+        :data="imageSrc"
+        type="image/svg+xml"
+        :aria-label="alt || '図表'"
+        class="mx-auto block h-auto max-w-full"
+        @load="prepareDiagramLinks"
+      />
       <UiButton
         v-if="canReedit"
         type="button"

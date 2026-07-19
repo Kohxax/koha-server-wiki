@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     setHeader(event, "Cache-Control", "no-store")
     setHeader(event, "Cloudflare-CDN-Cache-Control", "no-store")
     setHeader(event, "X-Content-Type-Options", "nosniff")
-    setHeader(event, "Content-Security-Policy", "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:")
+    setHeader(event, "Content-Security-Policy", "default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src data:; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'")
   } else {
     setHeader(event, "Cache-Control", "public, max-age=0, must-revalidate")
   }

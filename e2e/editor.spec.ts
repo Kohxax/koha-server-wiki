@@ -30,7 +30,7 @@ test("create, edit with live preview, and save", async ({ page }) => {
   await page.getByRole("link", { name: "H3見出し" }).click()
   await expect(page).toHaveURL(new RegExp(`${path}#h3`))
 
-  await page.getByRole("link", { name: "編集" }).click()
+  await page.getByRole("link", { name: "編集", exact: true }).click()
   await expect(page).toHaveURL(`/edit/${path}`)
   await markdownEditor(page).fill("# 更新後の内容")
   // Guard against the fill landing before Vue's v-model attaches: the dirty
@@ -154,6 +154,53 @@ test("re-editable diagrams expose edit controls only in the editor", async ({ pa
   await expect(reeditButton).toBeVisible()
   await reeditButton.click()
   await expect(page.locator('iframe[title="draw.io editor"]')).toBeVisible()
+})
+
+test("diagram links open in a new tab without navigating the page or enabling scripts", async ({ page }) => {
+  const path = `e2e-diagram-link-${Date.now()}`
+  const targetPath = `e2e-diagram-target-${Date.now()}`
+  const sandboxErrors: string[] = []
+  page.on("console", (message) => {
+    if (message.type() === "error" && message.text().includes("allow-scripts"))
+      sandboxErrors.push(message.text())
+  })
+
+  const linkedSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="100" viewBox="0 0 200 100"><a xlink:href="/wiki/${targetPath}"><rect width="200" height="100" fill="#22c55e"/><text x="20" y="55" fill="white">リンクを開く</text></a></svg>`
+  const media = await uploadSvg(page, `linked-diagram-${Date.now()}.svg`, linkedSvg, "diagram")
+
+  // The SVG must not be served with a `sandbox` CSP (it blocks link
+  // navigation entirely); scripts stay blocked via `script-src 'none'`.
+  const served = await page.request.get(`/uploads/${media.filename}`)
+  const contentSecurityPolicy = served.headers()["content-security-policy"] ?? ""
+  expect(contentSecurityPolicy).toContain("script-src 'none'")
+  expect(contentSecurityPolicy).not.toContain("sandbox")
+
+  await createPage(page, path, {
+    title: "リンク付き図表",
+    content: `::diagram{src="/uploads/${media.filename}" media-id="${media.id}"}\n::`,
+  })
+
+  await page.goto(`/wiki/${path}`)
+  const diagram = page.locator('object[aria-label="図表"]')
+  await expect(diagram).toBeVisible()
+  // The @load handler (or its onMounted fallback) rewrites the links inside
+  // the SVG document; poll because that happens after the object loads.
+  await expect.poll(() => diagram.evaluate((element: HTMLObjectElement) => {
+    const link = element.contentDocument?.querySelector("a")
+    return {
+      target: link?.getAttribute("target"),
+      rel: link?.getAttribute("rel"),
+    }
+  })).toEqual({ target: "_blank", rel: "noopener noreferrer" })
+
+  const popupPromise = page.waitForEvent("popup")
+  await diagram.click({ position: { x: 100, y: 50 } })
+  const popup = await popupPromise
+  await expect(popup).toHaveURL(new RegExp(`/wiki/${targetPath}$`))
+  // The originating page must stay put and keep showing the diagram.
+  await expect(page).toHaveURL(new RegExp(`/wiki/${path}$`))
+  await expect(diagram).toBeVisible()
+  expect(sandboxErrors).toEqual([])
 })
 
 test("desktop editor shows frontmatter, Markdown, and preview side by side", async ({ page }) => {
@@ -285,8 +332,8 @@ test.describe("re-editing a duplicated draw.io diagram", () => {
   test("duplicated diagram assets are served without caching", async ({ page }) => {
     const { copiedFilename } = await setUpDuplicatedDiagram(page)
 
-    const previewImage = page.locator(`#preview-panel img[src^="/uploads/${copiedFilename}?v="]`)
-    await expect(previewImage).toBeVisible()
+    const previewDiagram = page.locator(`#preview-panel object[data^="/uploads/${copiedFilename}?v="]`)
+    await expect(previewDiagram).toBeVisible()
 
     const svgResponse = await page.request.get(`/uploads/${copiedFilename}`)
     expect(svgResponse.headers()["cache-control"]).toBe("no-store")
@@ -298,8 +345,8 @@ test.describe("re-editing a duplicated draw.io diagram", () => {
     const editedSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10" fill="#00ff00"/></svg>'
     await mockDrawioEditor(page, editedSvg)
 
-    const previewImage = page.locator(`#preview-panel img[src^="/uploads/${copiedFilename}?v="]`)
-    const initialImageSrc = await previewImage.getAttribute("src")
+    const previewDiagram = page.locator(`#preview-panel object[data^="/uploads/${copiedFilename}?v="]`)
+    const initialImageSrc = await previewDiagram.getAttribute("data")
 
     const mediaSave = page.waitForResponse(response =>
       response.url().includes(`/api/media/${copiedId}`)
@@ -309,7 +356,7 @@ test.describe("re-editing a duplicated draw.io diagram", () => {
     await page.frameLocator('iframe[title="draw.io editor"]').getByRole("button", { name: "Save" }).click()
     expect((await mediaSave).ok()).toBeTruthy()
 
-    await expect.poll(() => previewImage.getAttribute("src")).not.toBe(initialImageSrc)
+    await expect.poll(() => previewDiagram.getAttribute("data")).not.toBe(initialImageSrc)
     expect(await (await page.request.get(`/uploads/${copiedFilename}`)).text()).toBe(editedSvg)
   })
 
@@ -318,12 +365,12 @@ test.describe("re-editing a duplicated draw.io diagram", () => {
     const editedSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10" fill="#00ff00"/></svg>'
     await mockDrawioEditor(page, editedSvg)
 
-    const previewImage = page.locator(`#preview-panel img[src^="/uploads/${copiedFilename}?v="]`)
-    const initialImageSrc = await previewImage.getAttribute("src")
+    const previewDiagram = page.locator(`#preview-panel object[data^="/uploads/${copiedFilename}?v="]`)
+    const initialImageSrc = await previewDiagram.getAttribute("data")
     await page.getByRole("button", { name: "draw.ioで再編集" }).click()
     await page.frameLocator('iframe[title="draw.io editor"]').getByRole("button", { name: "Save" }).click()
-    await expect.poll(() => previewImage.getAttribute("src")).not.toBe(initialImageSrc)
-    const updatedImageSrc = await previewImage.getAttribute("src")
+    await expect.poll(() => previewDiagram.getAttribute("data")).not.toBe(initialImageSrc)
+    const updatedImageSrc = await previewDiagram.getAttribute("data")
     expect(updatedImageSrc).toBeTruthy()
 
     await page.getByRole("button", { name: "保存", exact: true }).click()
@@ -331,10 +378,10 @@ test.describe("re-editing a duplicated draw.io diagram", () => {
     // The rendered page shows the same (now-edited) image src instead of
     // re-decoding pixels off a canvas: the src update plus the raw SVG
     // content fetched below together prove the edit persisted.
-    await expect(page.locator(`img[src="${updatedImageSrc}"]`).first()).toBeVisible()
+    await expect(page.locator(`object[data="${updatedImageSrc}"]`).first()).toBeVisible()
     expect(await (await page.request.get(`/uploads/${copiedFilename}`)).text()).toBe(editedSvg)
 
-    await page.getByRole("link", { name: "編集" }).click()
+    await page.getByRole("link", { name: "編集", exact: true }).click()
     await expect(page).toHaveURL(`/edit/${targetPath}`)
     await expect(page.getByRole("button", { name: "draw.ioで再編集" })).toBeVisible()
     await expect(markdownEditor(page)).toHaveValue(copiedContent)
