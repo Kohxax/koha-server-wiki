@@ -13,6 +13,8 @@ const props = withDefaults(defineProps<{
 
 const { user } = useUserSession()
 const canEdit = computed(() => user.value?.role === "editor" || user.value?.role === "admin")
+const isEditing = useDiagramEditing()
+const canReedit = computed(() => canEdit.value && isEditing.value)
 const mediaId = computed(() => Number(props.mediaId))
 const drawioDialogOpen = ref(false)
 const initialXml = ref("")
@@ -51,7 +53,7 @@ function handleSaved() {
     <div class="group relative">
       <ImageViewer :src="imageSrc" :alt="alt" />
       <UiButton
-        v-if="canEdit"
+        v-if="canReedit"
         type="button"
         variant="secondary"
         size="sm"
@@ -71,6 +73,7 @@ function handleSaved() {
     </p>
 
     <DrawioDialog
+      v-if="canReedit"
       v-model:open="drawioDialogOpen"
       :initial-xml="initialXml"
       :editing-media-id="mediaId"

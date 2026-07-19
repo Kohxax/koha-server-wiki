@@ -10,6 +10,8 @@ const props = withDefaults(defineProps<{
   view: "edit",
 })
 
+provideDiagramEditing(computed(() => props.view === "preview"))
+
 const textareaRef = ref<{ $el: HTMLTextAreaElement } | HTMLTextAreaElement | null>(null)
 const preview = shallowRef<Awaited<ReturnType<typeof parseMarkdown>>>()
 let previewTimer: ReturnType<typeof setTimeout> | undefined
@@ -26,6 +28,11 @@ watch(model, (value) => {
   clearTimeout(previewTimer)
   previewTimer = setTimeout(() => void updatePreview(value), 150)
 }, { immediate: true })
+
+onMounted(() => {
+  if (props.view === "preview")
+    void updatePreview(model.value)
+})
 
 onBeforeUnmount(() => clearTimeout(previewTimer))
 

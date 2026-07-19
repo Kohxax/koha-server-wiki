@@ -172,7 +172,7 @@ test("image viewer closes when its background is clicked", async ({ page }) => {
   await expect(dialog).toBeHidden()
 })
 
-test("re-editable diagram MDC markup displays the draw.io edit action", async ({ page }) => {
+test("re-editable diagrams expose edit controls only in the editor", async ({ page }) => {
   const path = `e2e-re-editable-diagram-${Date.now()}`
   const upload = await page.request.post("/api/media", {
     multipart: {
@@ -198,7 +198,13 @@ test("re-editable diagram MDC markup displays the draw.io edit action", async ({
   expect(save.ok()).toBeTruthy()
 
   await page.goto(`/wiki/${path}`)
-  await expect(page.getByRole("button", { name: "draw.ioで再編集" })).toBeVisible()
+  await expect(page.getByRole("button", { name: "draw.ioで再編集" })).not.toBeAttached()
+
+  await page.goto(`/edit/${path}`)
+  const reeditButton = page.getByRole("button", { name: "draw.ioで再編集" })
+  await expect(reeditButton).toBeVisible()
+  await reeditButton.click()
+  await expect(page.locator('iframe[title="draw.io editor"]')).toBeVisible()
 })
 
 test("desktop editor shows frontmatter, Markdown, and preview side by side", async ({ page }) => {
