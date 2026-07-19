@@ -233,7 +233,7 @@ test("editor tabs fit the viewport and work on mobile", async ({ page }) => {
 
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto(`/edit/${path}`)
-  await page.locator("aside").getByRole("button", { name: "サイドバーを閉じる" }).click({ force: true })
+  await expect(page.getByRole("button", { name: "メニューを開く" })).toBeVisible()
 
   await expect(page.getByRole("tab")).toHaveCount(3)
   await page.getByRole("tab", { name: "ページ設定" }).click()
