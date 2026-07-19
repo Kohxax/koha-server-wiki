@@ -22,6 +22,10 @@ export default defineNuxtConfig({
     // (project root vs .output), which otherwise silently splits uploads into
     // two different directories depending on how the server was started.
     uploadDir: process.env.UPLOAD_DIR || fileURLToPath(new URL('./uploads', import.meta.url)),
+    // JSON mapping of public Minecraft host names to trusted internal status
+    // endpoints. This is server-only so a deployment can avoid hairpin NAT
+    // without exposing its private network topology to clients.
+    minecraftStatusTargets: process.env.NUXT_MINECRAFT_STATUS_TARGETS || "",
     public: {
       devAuthBypass: !!process.env.NUXT_DEV_AUTH_BYPASS,
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || "",

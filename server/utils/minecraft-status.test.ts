@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { isPublicIpv4, parseMinecraftServerAddress } from "./minecraft-status"
+import { isPublicIpv4, parseMinecraftServerAddress, parseMinecraftStatusTargets } from "./minecraft-status"
 
 describe("parseMinecraftServerAddress", () => {
   it("uses the default Java port when omitted", () => {
@@ -22,5 +22,22 @@ describe("isPublicIpv4", () => {
 
   it("allows a public address", () => {
     expect(isPublicIpv4("8.8.8.8")).toBe(true)
+  })
+})
+
+describe("parseMinecraftStatusTargets", () => {
+  it("allows a public host to use a private, server-configured target", () => {
+    expect(parseMinecraftStatusTargets('{"mc.example.net":"192.168.1.10:25577"}')).toEqual(new Map([
+      ["mc.example.net", { host: "192.168.1.10", port: 25577, hasExplicitPort: true }],
+    ]))
+  })
+
+  it.each([
+    "not-json",
+    "[]",
+    '{"mc.example.net":123}',
+    '{"mc.example.net:25565":"192.168.1.10:25577"}',
+  ])("rejects invalid target configuration: %s", (targets) => {
+    expect(() => parseMinecraftStatusTargets(targets)).toThrow()
   })
 })

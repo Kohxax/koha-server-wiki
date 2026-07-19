@@ -25,6 +25,8 @@ export interface MinecraftServerStatus {
 
 export class InvalidMinecraftServerAddressError extends Error {}
 
+export class InvalidMinecraftStatusTargetsError extends Error {}
+
 interface ResolvedMinecraftServer extends MinecraftServerAddress {
   connectHost: string
 }
@@ -59,6 +61,39 @@ export function parseMinecraftServerAddress(raw: string): MinecraftServerAddress
     throw new InvalidMinecraftServerAddressError("Invalid server address")
 
   return { host, port, hasExplicitPort: !!parts[2] }
+}
+
+/**
+ * Parses server-controlled target overrides. The public name remains the
+ * handshake host, while only this explicit configuration may use a private
+ * network destination.
+ */
+export function parseMinecraftStatusTargets(raw: string): Map<string, MinecraftServerAddress> {
+  if (!raw.trim())
+    return new Map()
+
+  let value: unknown
+  try {
+    value = JSON.parse(raw)
+  } catch {
+    throw new InvalidMinecraftStatusTargetsError("Minecraft status targets must be JSON")
+  }
+
+  if (!value || typeof value !== "object" || Array.isArray(value))
+    throw new InvalidMinecraftStatusTargetsError("Minecraft status targets must be an object")
+
+  const targets = new Map<string, MinecraftServerAddress>()
+  for (const [publicHost, target] of Object.entries(value)) {
+    if (typeof target !== "string")
+      throw new InvalidMinecraftStatusTargetsError("Minecraft status target must be a string")
+
+    const source = parseMinecraftServerAddress(publicHost)
+    if (source.hasExplicitPort)
+      throw new InvalidMinecraftStatusTargetsError("Minecraft status target keys must not include a port")
+
+    targets.set(source.host, parseMinecraftServerAddress(target))
+  }
+  return targets
 }
 
 function isValidHostname(host: string): boolean {
@@ -108,6 +143,14 @@ async function resolvePublicMinecraftServer(address: MinecraftServerAddress): Pr
     throw new InvalidMinecraftServerAddressError("Private server addresses are not allowed")
 
   return { ...address, port: endpoint.port, connectHost }
+}
+
+function resolveConfiguredMinecraftServer(address: MinecraftServerAddress, targets: ReadonlyMap<string, MinecraftServerAddress>): ResolvedMinecraftServer | undefined {
+  const target = targets.get(address.host)
+  if (!target)
+    return undefined
+
+  return { ...address, port: target.port, connectHost: target.host }
 }
 
 async function resolveMinecraftEndpoint(address: MinecraftServerAddress): Promise<{ host: string, port: number }> {
@@ -270,9 +313,9 @@ async function pingMinecraftServer(server: ResolvedMinecraftServer): Promise<Min
   })
 }
 
-export async function getMinecraftServerStatus(rawAddress: string): Promise<MinecraftServerStatus> {
+export async function getMinecraftServerStatus(rawAddress: string, targets: ReadonlyMap<string, MinecraftServerAddress> = new Map()): Promise<MinecraftServerStatus> {
   const address = parseMinecraftServerAddress(rawAddress)
-  const key = `${address.host}:${address.port}`
+  const key = `${address.host}:${address.port}:${address.hasExplicitPort ? "explicit" : "default"}`
   const cached = statusCache.get(key)
   if (cached && cached.expiresAt > Date.now())
     return cached.value
@@ -282,11 +325,15 @@ export async function getMinecraftServerStatus(rawAddress: string): Promise<Mine
     return await pending
 
   const request = (async () => {
-    const server = await resolvePublicMinecraftServer(address)
+    const server = resolveConfiguredMinecraftServer(address, targets) ?? await resolvePublicMinecraftServer(address)
     let value: MinecraftServerStatus
     try {
       value = await pingMinecraftServer(server)
-    } catch {
+    } catch (error) {
+      console.warn("Minecraft status request failed", {
+        address: `${address.host}:${server.port}`,
+        reason: error instanceof Error ? error.message : "Unknown error",
+      })
       value = { address: `${server.host}:${server.port}`, online: false }
     }
     if (statusCache.size >= MAX_CACHE_ENTRIES)
