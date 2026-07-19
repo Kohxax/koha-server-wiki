@@ -2,7 +2,10 @@
 import { MenuIcon, PanelLeftCloseIcon, PanelLeftOpenIcon } from '@lucide/vue'
 import type { SidebarDto } from '~~/shared/types/api'
 
-const props = defineProps<{ open: boolean }>()
+const props = defineProps<{
+  open: boolean
+  ready: boolean
+}>()
 const emit = defineEmits<{ toggle: [] }>()
 
 const { data: sidebar } = await useFetch<SidebarDto>('/api/sidebar', { key: 'sidebar' })
@@ -10,14 +13,14 @@ const { data: sidebar } = await useFetch<SidebarDto>('/api/sidebar', { key: 'sid
 
 <template>
     <button
-      v-if="props.open"
+      v-if="props.ready && props.open"
       class="fixed inset-0 z-40 bg-foreground/20 md:hidden"
       aria-label="サイドバーを閉じる"
       @click="emit('toggle')"
     />
     <aside
       class="app-shell app-sidebar fixed top-14 bottom-0 left-0 z-50 flex w-64 shrink-0 flex-col overflow-hidden border-r bg-sidebar text-sidebar-foreground transition-transform duration-300 ease-out md:sticky md:top-14 md:bottom-auto md:z-auto md:h-[calc(100dvh-3.5rem)] md:self-start md:translate-x-0 md:transition-[width]"
-      :class="props.open ? 'translate-x-0 md:w-64' : '-translate-x-full md:w-12'"
+      :class="!props.ready ? 'max-md:-translate-x-full md:w-64' : props.open ? 'translate-x-0 md:w-64' : '-translate-x-full md:w-12'"
     >
       <div class="flex shrink-0 border-b p-2" :class="props.open ? 'w-64 justify-end' : 'w-12 justify-center'">
         <UiButton variant="ghost" size="icon-sm" :aria-label="props.open ? 'サイドバーを閉じる' : 'サイドバーを開く'" @click="emit('toggle')">
@@ -33,7 +36,7 @@ const { data: sidebar } = await useFetch<SidebarDto>('/api/sidebar', { key: 'sid
       </UiScrollArea>
     </aside>
     <UiButton
-      v-if="!props.open"
+      v-if="props.ready && !props.open"
       class="fixed bottom-5 left-5 z-40 shadow-md md:hidden"
       variant="outline"
       size="icon"
