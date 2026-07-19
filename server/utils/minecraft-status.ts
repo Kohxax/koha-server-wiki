@@ -68,15 +68,19 @@ export function parseMinecraftServerAddress(raw: string): MinecraftServerAddress
  * handshake host, while only this explicit configuration may use a private
  * network destination.
  */
-export function parseMinecraftStatusTargets(raw: string): Map<string, MinecraftServerAddress> {
-  if (!raw.trim())
-    return new Map()
-
+export function parseMinecraftStatusTargets(raw: unknown): Map<string, MinecraftServerAddress> {
   let value: unknown
-  try {
-    value = JSON.parse(raw)
-  } catch {
-    throw new InvalidMinecraftStatusTargetsError("Minecraft status targets must be JSON")
+  if (typeof raw === "string") {
+    if (!raw.trim())
+      return new Map()
+
+    try {
+      value = JSON.parse(raw)
+    } catch {
+      throw new InvalidMinecraftStatusTargetsError("Minecraft status targets must be JSON")
+    }
+  } else {
+    value = raw
   }
 
   if (!value || typeof value !== "object" || Array.isArray(value))

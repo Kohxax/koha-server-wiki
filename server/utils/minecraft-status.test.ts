@@ -32,6 +32,12 @@ describe("parseMinecraftStatusTargets", () => {
     ]))
   })
 
+  it("accepts a target object deserialized from Nuxt runtime config", () => {
+    expect(parseMinecraftStatusTargets({ "mc.example.net": "192.168.1.10:25577" })).toEqual(new Map([
+      ["mc.example.net", { host: "192.168.1.10", port: 25577, hasExplicitPort: true }],
+    ]))
+  })
+
   it.each([
     "not-json",
     "[]",
