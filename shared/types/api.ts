@@ -39,6 +39,11 @@ export interface MediaDto {
   createdAt: string
 }
 
+export interface MediaReferenceDto {
+  path: string
+  title: string
+}
+
 export interface TreeNode {
   label: string
   path?: string
