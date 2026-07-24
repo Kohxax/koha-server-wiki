@@ -57,6 +57,8 @@ export interface SearchResultDto {
   excerpt: string
 }
 
+export type RecentPageDto = Pick<PageDto, "path" | "title" | "updatedAt">
+
 export interface SidebarDto {
   mode: "auto" | "manual"
   tree: TreeNode[]
