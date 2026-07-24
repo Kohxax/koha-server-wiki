@@ -120,6 +120,20 @@ test.describe("page management", () => {
     await page.goto(`/wiki/${path}`)
     await expect(page.getByText(address)).toBeVisible()
   })
+
+  test("renders the recent pages MDC component", async ({ page }) => {
+    const path = `e2e-recent-pages-${Date.now()}`
+    const title = `最近更新MDC-${path}`
+
+    const response = await page.request.put(`/api/pages/${path}`, {
+      data: { title, description: "", content: "::recent-pages{limit=\"5\"}\n::", expectedUpdatedAt: null },
+    })
+    expect(response.ok()).toBeTruthy()
+
+    await page.goto(`/wiki/${path}`)
+    await expect(page.getByRole("heading", { name: "最近更新されたページ" })).toBeVisible()
+    await expect(page.getByRole("link", { name: title })).toHaveAttribute("href", `/wiki/${path}`)
+  })
 })
 
 test.describe("media management", () => {
