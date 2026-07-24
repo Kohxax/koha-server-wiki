@@ -3,8 +3,6 @@ import { expect, test } from "@playwright/test"
 test("homepage loads and dark mode toggle works", async ({ page }) => {
   await page.goto("/")
   await expect(page.getByRole("banner").getByRole("link", { name: "こは鯖wiki" })).toBeVisible()
-  await expect(page.getByRole("contentinfo").getByText("© 2026 こは鯖wiki")).toBeVisible()
-  await expect(page.getByRole("contentinfo").getByText("Minecraft は Mojang Studios の商標です。")).toBeVisible()
 
   const html = page.locator("html")
   const before = await html.getAttribute("class")

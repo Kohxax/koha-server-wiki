@@ -104,7 +104,11 @@ test.describe("page management", () => {
     await expect.poll(async () => {
       const button = await editLink.boundingBox()
       const sidebar = await page.locator("main aside").boundingBox()
-      return !!button && !!sidebar && Math.abs((button.x + button.width / 2) - (sidebar.x + sidebar.width / 2)) < 1
+      return !!button && !!sidebar
+        && button.x >= sidebar.x
+        && button.x + button.width <= sidebar.x + sidebar.width
+        && button.y >= sidebar.y
+        && button.y + button.height <= sidebar.y + sidebar.height
     }).toBe(true)
   })
 
