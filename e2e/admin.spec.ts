@@ -136,7 +136,7 @@ test.describe("page management", () => {
 
     await page.goto(`/wiki/${path}`)
     await expect(page.getByRole("heading", { name: "最近更新されたページ" })).toBeVisible()
-    await expect(page.getByRole("link", { name: title })).toHaveAttribute("href", `/wiki/${path}`)
+    await expect(page.getByLabel("最近更新されたページ").getByRole("link", { name: title })).toHaveAttribute("href", `/wiki/${path}`)
   })
 })
 
