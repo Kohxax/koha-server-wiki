@@ -20,10 +20,12 @@ const emit = defineEmits<{ selectHeading: [id: string] }>()
 </script>
 
 <template>
-  <aside class="order-2 hidden self-start space-y-6 text-sm lg:sticky lg:top-20 lg:block">
-    <UiButton v-if="canEdit" variant="outline" size="sm" class="w-full bg-sidebar hover:bg-sidebar-accent" as-child>
-      <NuxtLink :to="editTo">編集</NuxtLink>
-    </UiButton>
+  <aside class="hidden self-start space-y-6 text-sm lg:col-start-2 lg:row-start-2 lg:sticky lg:top-20 lg:block">
+    <div v-if="canEdit">
+      <UiButton variant="outline" size="sm" class="bg-sidebar hover:bg-sidebar-accent" as-child>
+        <NuxtLink :to="editTo">編集</NuxtLink>
+      </UiButton>
+    </div>
     <section v-if="toc.length" class="wiki-scrollbar max-h-[calc(100dvh-16rem)] overflow-y-auto border border-sidebar-border bg-sidebar p-4 transition-colors dark:bg-muted/30">
       <h2 class="mb-3 font-semibold">目次</h2>
       <nav>

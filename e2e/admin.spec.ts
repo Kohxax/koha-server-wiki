@@ -96,6 +96,16 @@ test.describe("page management", () => {
     await page.goto(`/wiki/${path}`)
     const editLink = page.locator("main aside").getByRole("link", { name: "編集" })
     await expect(editLink).toHaveAttribute("href", `/edit/${path}`)
+    await expect.poll(async () => {
+      const article = await page.locator("main article").boundingBox()
+      const sidebar = await page.locator("main aside").boundingBox()
+      return !!article && !!sidebar && article.x < sidebar.x && article.y === sidebar.y
+    }).toBe(true)
+    await expect.poll(async () => {
+      const button = await editLink.boundingBox()
+      const sidebar = await page.locator("main aside").boundingBox()
+      return !!button && !!sidebar && Math.abs((button.x + button.width / 2) - (sidebar.x + sidebar.width / 2)) < 1
+    }).toBe(true)
   })
 
   test("renders the server status MDC component", async ({ page }) => {

@@ -77,7 +77,7 @@ useSeoMeta({
         </div>
         <p v-if="page.description" class="mt-2 text-sm leading-6 text-muted-foreground">{{ page.description }}</p>
       </div>
-      <article data-image-viewer-group class="order-1 min-w-0">
+      <article data-image-viewer-group class="min-w-0 lg:col-start-1 lg:row-start-2">
         <MDCRenderer :body="body" :data="data" class="wiki-prose [&_img]:h-auto [&_img]:max-w-full" />
       </article>
       <PageRightSidebar
