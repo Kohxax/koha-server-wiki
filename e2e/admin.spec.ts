@@ -69,6 +69,35 @@ test.describe("page management", () => {
     await expect(managedPage).toBeVisible()
   })
 
+  test("filters pages by title and keeps matching nested pages visible", async ({ page }) => {
+    const folder = `e2e-search-${Date.now()}`
+    const path = `${folder}/child`
+    const title = `検索対象-${folder}`
+
+    const response = await page.request.put(`/api/pages/${path}`, {
+      data: { title, description: "", content: "# 検索テスト", expectedUpdatedAt: null },
+    })
+    expect(response.ok()).toBeTruthy()
+
+    await page.goto("/settings/pages")
+    await page.getByRole("searchbox", { name: "ページを検索" }).fill(title)
+    await expect(page.getByText(folder, { exact: true })).toBeVisible()
+    await expect(page.getByText(title, { exact: true })).toBeVisible()
+    await expect(page.getByText("該当するページがありません")).toBeHidden()
+  })
+
+  test("keeps the edit link in the desktop right sidebar", async ({ page }) => {
+    const path = `e2e-right-sidebar-${Date.now()}`
+    const response = await page.request.put(`/api/pages/${path}`, {
+      data: { title: "右サイドバーのテスト", description: "", content: "# 右サイドバー", expectedUpdatedAt: null },
+    })
+    expect(response.ok()).toBeTruthy()
+
+    await page.goto(`/wiki/${path}`)
+    const editLink = page.locator("main aside").getByRole("link", { name: "編集" })
+    await expect(editLink).toHaveAttribute("href", `/edit/${path}`)
+  })
+
   test("renders the server status MDC component", async ({ page }) => {
     const path = `e2e-server-status-${Date.now()}`
     const address = "127.0.0.1"
@@ -80,6 +109,50 @@ test.describe("page management", () => {
 
     await page.goto(`/wiki/${path}`)
     await expect(page.getByText(address)).toBeVisible()
+  })
+})
+
+test.describe("media management", () => {
+  test.use({ storageState: "e2e/.auth/editor.json" })
+
+  test("opens the image viewer and warns before deleting a referenced image", async ({ page }) => {
+    const imageName = `media-manager-${Date.now()}.svg`
+    const upload = await page.request.post("/api/media", {
+      multipart: {
+        file: {
+          name: imageName,
+          mimeType: "image/svg+xml",
+          buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>'),
+        },
+      },
+    })
+    expect(upload.ok()).toBeTruthy()
+    const media = await upload.json() as { id: number, filename: string }
+
+    const path = `e2e-media-reference-${Date.now()}`
+    const save = await page.request.put(`/api/pages/${path}`, {
+      data: {
+        title: "メディア参照ページ",
+        description: "",
+        content: `![${imageName}](/uploads/${media.filename})`,
+        expectedUpdatedAt: null,
+      },
+    })
+    expect(save.ok()).toBeTruthy()
+
+    await page.goto("/settings/media")
+    const card = page.locator('[data-slot="card"]').filter({ has: page.getByRole("button", { name: `画像を拡大: ${imageName}` }) })
+    const viewer = page.getByRole("dialog")
+    await expect.poll(async () => {
+      await card.getByRole("button", { name: `画像を拡大: ${imageName}` }).click()
+      return await viewer.isVisible()
+    }).toBe(true)
+    await page.getByRole("button", { name: "閉じる" }).click()
+
+    await card.getByRole("button", { name: "削除" }).click()
+    const warning = page.getByRole("dialog").filter({ has: page.getByRole("heading", { name: "使用中のメディアです" }) })
+    await expect(warning).toBeVisible()
+    await expect(warning.getByRole("link", { name: "メディア参照ページ" })).toHaveAttribute("href", `/wiki/${path}`)
   })
 })
 
