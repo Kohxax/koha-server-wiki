@@ -80,3 +80,12 @@ export interface MinecraftServerStatusDto {
   description?: string
   favicon?: string
 }
+
+export interface LinkPreviewDto {
+  type: "internal" | "external"
+  title: string
+  description: string | null
+  imageUrl: string | null
+  siteName: string | null
+  updatedAt: string | null
+}
