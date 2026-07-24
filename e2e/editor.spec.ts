@@ -234,6 +234,66 @@ test("save moves a page to its edited path", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "移動テストページ" })).toBeVisible()
 })
 
+test("duplicate creates independent draw.io diagrams while keeping image references", async ({ page }) => {
+  const sourcePath = `e2e-duplicate-source-${Date.now()}`
+  const targetPath = `e2e-duplicate-target-${Date.now()}`
+  const diagramName = `duplicate-diagram-${Date.now()}.svg`
+  const imageName = `duplicate-image-${Date.now()}.svg`
+  const diagramSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><text>source</text></svg>'
+
+  const diagramUpload = await page.request.post("/api/media", {
+    multipart: {
+      file: { name: diagramName, mimeType: "image/svg+xml", buffer: Buffer.from(diagramSvg) },
+      kind: "diagram",
+    },
+  })
+  expect(diagramUpload.ok()).toBeTruthy()
+  const diagram = await diagramUpload.json() as { id: number, filename: string }
+
+  const imageUpload = await page.request.post("/api/media", {
+    multipart: {
+      file: { name: imageName, mimeType: "image/svg+xml", buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>') },
+    },
+  })
+  expect(imageUpload.ok()).toBeTruthy()
+  const image = await imageUpload.json() as { filename: string }
+
+  const sourceContent = `![通常画像](/uploads/${image.filename})\n\n::diagram{src="/uploads/${diagram.filename}" media-id="${diagram.id}"}\n配置図\n::`
+  const sourceSave = await page.request.put(`/api/pages/${sourcePath}`, {
+    data: { title: "複製元", description: "説明", content: sourceContent, expectedUpdatedAt: null },
+  })
+  expect(sourceSave.ok()).toBeTruthy()
+
+  await page.goto(`/edit/${sourcePath}`)
+  await page.getByRole("button", { name: "複製", exact: true }).click()
+  await page.getByLabel("新しいパス").fill(targetPath)
+  await page.getByLabel("タイトル").last().fill("複製先")
+  await page.getByRole("button", { name: "複製", exact: true }).last().click()
+
+  await expect(page).toHaveURL(`/edit/${targetPath}`)
+  await expect(page.getByLabel("タイトル").first()).toHaveValue("複製先")
+  const copiedContent = await markdownEditor(page).inputValue()
+  expect(copiedContent).toContain(`/uploads/${image.filename}`)
+  expect(copiedContent).not.toContain(`media-id="${diagram.id}"`)
+  expect(copiedContent).not.toContain(`/uploads/${diagram.filename}`)
+
+  const mediaIdMatch = /media-id="(\d+)"/.exec(copiedContent)
+  const filenameMatch = /::diagram\{src="\/uploads\/([^"]+)"/.exec(copiedContent)
+  expect(mediaIdMatch?.[1]).toBeTruthy()
+  expect(filenameMatch?.[1]).toBeTruthy()
+  expect(Number(mediaIdMatch?.[1])).not.toBe(diagram.id)
+
+  const copiedFilename = filenameMatch![1]
+  const copiedUpdate = await page.request.put(`/api/media/${mediaIdMatch![1]}`, {
+    multipart: {
+      file: { name: copiedFilename, mimeType: "image/svg+xml", buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><text>copy</text></svg>') },
+    },
+  })
+  expect(copiedUpdate.ok()).toBeTruthy()
+  expect(await (await page.request.get(`/uploads/${diagram.filename}`)).text()).toBe(diagramSvg)
+  expect(await (await page.request.get(`/uploads/${copiedFilename}`)).text()).toContain("copy")
+})
+
 test("editor tabs fit the viewport and work on mobile", async ({ page }) => {
   const path = `e2e-mobile-${Date.now()}`
 
