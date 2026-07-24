@@ -9,9 +9,11 @@ const props = withDefaults(defineProps<{
   nodes: TreeNode[]
   parentKey?: string
   deletingPath?: string | null
+  forceExpanded?: boolean
 }>(), {
   parentKey: "",
   deletingPath: null,
+  forceExpanded: false,
 })
 
 const emit = defineEmits<{
@@ -25,7 +27,7 @@ function nodeKey(node: TreeNode) {
 }
 
 function isExpanded(node: TreeNode) {
-  return expanded.value[nodeKey(node)] !== false
+  return props.forceExpanded || expanded.value[nodeKey(node)] !== false
 }
 
 function toggleExpanded(node: TreeNode) {
@@ -79,6 +81,7 @@ function toggleExpanded(node: TreeNode) {
         :nodes="node.children"
         :parent-key="nodeKey(node)"
         :deleting-path="deletingPath"
+        :force-expanded="forceExpanded"
         class="ml-5 border-l"
         @remove="emit('remove', $event)"
       />

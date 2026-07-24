@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PlusIcon } from "@lucide/vue"
+import { PlusIcon, SearchIcon } from "@lucide/vue"
 import type { TreeNode } from "~~/shared/types/api"
 
 definePageMeta({ middleware: ["require-editor"] })
@@ -12,6 +12,22 @@ interface ManagedPage {
 const { data: tree, refresh } = await useFetch<TreeNode[]>("/api/pages/tree", { key: "settings-pages" })
 const deletingPath = ref<string | null>(null)
 const pageToDelete = ref<ManagedPage | null>(null)
+const searchQuery = ref("")
+
+function filterTree(nodes: TreeNode[], query: string): TreeNode[] {
+  const normalizedQuery = query.trim().toLocaleLowerCase()
+  if (!normalizedQuery)
+    return nodes
+
+  return nodes.flatMap((node) => {
+    const children = filterTree(node.children, normalizedQuery)
+    const matches = `${node.label} ${node.path ?? ""}`.toLocaleLowerCase().includes(normalizedQuery)
+    return matches || children.length ? [{ ...node, children }] : []
+  })
+}
+
+const filteredTree = computed(() => filterTree(tree.value ?? [], searchQuery.value))
+const isFiltering = computed(() => searchQuery.value.trim().length > 0)
 
 function requestRemove(page: ManagedPage) {
   pageToDelete.value = page
@@ -47,10 +63,15 @@ useHead({ title: "ページ管理" })
       </NuxtLink>
     </div>
 
+    <div class="relative mb-3 max-w-md">
+      <SearchIcon class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+      <UiInput v-model="searchQuery" type="search" aria-label="ページを検索" placeholder="タイトル・パスで検索" class="pl-9" />
+    </div>
+
     <UiCard>
       <UiCardContent class="p-0">
-        <PageManagementTree v-if="tree?.length" :nodes="tree" :deleting-path="deletingPath" @remove="requestRemove" />
-        <p v-else class="p-4 text-sm text-muted-foreground">まだページがありません</p>
+        <PageManagementTree v-if="filteredTree.length" :nodes="filteredTree" :deleting-path="deletingPath" :force-expanded="isFiltering" @remove="requestRemove" />
+        <p v-else class="p-4 text-sm text-muted-foreground">{{ isFiltering ? "該当するページがありません" : "まだページがありません" }}</p>
       </UiCardContent>
     </UiCard>
     <ConfirmDialog
