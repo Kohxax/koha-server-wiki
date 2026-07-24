@@ -4,9 +4,11 @@ import { ChevronLeftIcon, ChevronRightIcon, Maximize2Icon, Minimize2Icon, XIcon 
 const props = withDefaults(defineProps<{
   src?: string
   alt?: string
+  imageClass?: string
 }>(), {
   src: "",
   alt: "",
+  imageClass: "",
 })
 
 const open = ref(false)
@@ -80,7 +82,7 @@ onBeforeUnmount(() => window.removeEventListener("image-viewer:open", handleView
       data-image-viewer-trigger
       @click="openViewer"
     >
-      <img :src="src" :alt="alt" class="mx-auto h-auto max-w-full border border-border" loading="lazy">
+      <img :src="src" :alt="alt" :class="['mx-auto h-auto max-w-full border border-border', imageClass]" loading="lazy">
     </button>
     <UiDialogContent
       :show-close-button="false"
