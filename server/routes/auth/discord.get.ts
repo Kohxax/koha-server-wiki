@@ -14,7 +14,9 @@ export default defineOAuthDiscordEventHandler({
       avatarUrl,
     })
 
-    await setUserSession(event, { user: toSessionUser(dbUser) })
+    await setUserSession(event, { user: toSessionUser(dbUser) }, {
+      maxAge: 60 * 60 * 24 * 120,
+    })
 
     return sendRedirect(event, "/")
   },
