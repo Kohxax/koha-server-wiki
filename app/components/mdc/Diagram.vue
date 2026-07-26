@@ -20,10 +20,8 @@ const drawioDialogOpen = ref(false)
 const initialXml = ref("")
 const loading = ref(false)
 const errorMessage = ref("")
-const imageVersion = ref(0)
-const imageSrc = computed(() => imageVersion.value > 0
-  ? `${props.src}${props.src.includes("?") ? "&" : "?"}v=${imageVersion.value}`
-  : props.src)
+const { versionedSrc, refreshVersion } = useDiagramMediaVersions()
+const imageSrc = computed(() => versionedSrc(props.src))
 
 async function editDiagram() {
   if (!Number.isInteger(mediaId.value) || mediaId.value <= 0) {
@@ -34,7 +32,7 @@ async function editDiagram() {
   loading.value = true
   errorMessage.value = ""
   try {
-    initialXml.value = await $fetch<string>(props.src, { responseType: "text" })
+    initialXml.value = await $fetch<string>(imageSrc.value, { responseType: "text" })
     drawioDialogOpen.value = true
   } catch {
     errorMessage.value = "図表を読み込めませんでした"
@@ -44,7 +42,7 @@ async function editDiagram() {
 }
 
 function handleSaved() {
-  imageVersion.value = Date.now()
+  refreshVersion(props.src)
 }
 </script>
 

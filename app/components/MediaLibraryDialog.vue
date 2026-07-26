@@ -51,14 +51,16 @@ function selectItem(item: MediaDto) {
 const drawioDialogOpen = ref(false)
 const editingMediaId = ref<number | undefined>(undefined)
 const editingXml = ref("")
+const { versionedSrc, refreshVersion } = useDiagramMediaVersions()
 
 async function editDiagram(item: MediaDto) {
-  editingXml.value = await $fetch<string>(`/uploads/${item.filename}`, { responseType: "text" })
+  editingXml.value = await $fetch<string>(versionedSrc(`/uploads/${item.filename}`), { responseType: "text" })
   editingMediaId.value = item.id
   drawioDialogOpen.value = true
 }
 
-async function onDiagramSaved() {
+async function onDiagramSaved(item: Pick<MediaDto, "filename">) {
+  refreshVersion(`/uploads/${item.filename}`)
   await refresh()
 }
 </script>
@@ -105,7 +107,7 @@ async function onDiagramSaved() {
               :title="item.originalName"
               @click="selectItem(item)"
             >
-              <img :src="`/uploads/${item.filename}`" :alt="item.originalName" class="h-full w-full object-cover">
+              <img :src="item.kind === 'diagram' ? versionedSrc(`/uploads/${item.filename}`) : `/uploads/${item.filename}`" :alt="item.originalName" class="h-full w-full object-cover">
             </button>
             <UiButton
               v-if="item.kind === 'diagram'"

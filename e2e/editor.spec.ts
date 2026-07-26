@@ -6,6 +6,10 @@ function markdownEditor(page: import("@playwright/test").Page) {
   return page.getByPlaceholder("Markdownで本文を入力")
 }
 
+async function waitForNuxtHydration(page: import("@playwright/test").Page) {
+  await expect.poll(() => page.locator("#__nuxt").evaluate(element => "__vue_app__" in element)).toBe(true)
+}
+
 test("create, edit with live preview, and save", async ({ page }) => {
   const path = `e2e-test-${Date.now()}`
 
@@ -265,6 +269,7 @@ test("duplicate creates independent draw.io diagrams while keeping image referen
   expect(sourceSave.ok()).toBeTruthy()
 
   await page.goto(`/edit/${sourcePath}`)
+  await waitForNuxtHydration(page)
   await page.getByRole("button", { name: "複製", exact: true }).click()
   await page.getByLabel("新しいパス").fill(targetPath)
   await page.getByLabel("タイトル").last().fill("複製先")
@@ -292,6 +297,102 @@ test("duplicate creates independent draw.io diagrams while keeping image referen
   expect(copiedUpdate.ok()).toBeTruthy()
   expect(await (await page.request.get(`/uploads/${diagram.filename}`)).text()).toBe(diagramSvg)
   expect(await (await page.request.get(`/uploads/${copiedFilename}`)).text()).toContain("copy")
+})
+
+test("re-editing a duplicated draw.io diagram survives saving the page", async ({ page }) => {
+  const sourcePath = `e2e-reedit-source-${Date.now()}`
+  const targetPath = `e2e-reedit-target-${Date.now()}`
+  const originalSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10" fill="#ff0000"/></svg>'
+  const editedSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10" fill="#00ff00"/></svg>'
+  const upload = await page.request.post("/api/media", {
+    multipart: {
+      file: { name: "reedit-source.svg", mimeType: "image/svg+xml", buffer: Buffer.from(originalSvg) },
+      kind: "diagram",
+    },
+  })
+  expect(upload.ok()).toBeTruthy()
+  const original = await upload.json() as { id: number, filename: string }
+
+  const sourceSave = await page.request.put(`/api/pages/${sourcePath}`, {
+    data: {
+      title: "再編集元",
+      description: "",
+      content: `::diagram{src="/uploads/${original.filename}" media-id="${original.id}"}\n::`,
+      expectedUpdatedAt: null,
+    },
+  })
+  expect(sourceSave.ok()).toBeTruthy()
+
+  await page.goto(`/edit/${sourcePath}`)
+  await waitForNuxtHydration(page)
+  await page.getByRole("button", { name: "複製", exact: true }).click()
+  await page.getByLabel("新しいパス").fill(targetPath)
+  await page.getByLabel("タイトル").last().fill("再編集先")
+  await page.getByRole("button", { name: "複製", exact: true }).last().click()
+  await expect(page).toHaveURL(`/edit/${targetPath}`)
+
+  const copiedContent = await markdownEditor(page).inputValue()
+  const copiedId = /media-id="(\d+)"/.exec(copiedContent)?.[1]
+  const copiedFilename = /::diagram\{src="\/uploads\/([^"]+)"/.exec(copiedContent)?.[1]
+  expect(copiedId).toBeTruthy()
+  expect(copiedFilename).toBeTruthy()
+
+  const previewImage = page.locator(`#preview-panel img[src^="/uploads/${copiedFilename}?v="]`)
+  await expect(previewImage).toBeVisible()
+  const initialImageSrc = await previewImage.getAttribute("src")
+  const svgResponse = await page.request.get(`/uploads/${copiedFilename}`)
+  expect(svgResponse.headers()["cache-control"]).toBe("no-store")
+  expect(svgResponse.headers()["cloudflare-cdn-cache-control"]).toBe("no-store")
+  await page.route("https://embed.diagrams.net/**", async (route) => {
+    const dataUrl = `data:image/svg+xml;base64,${Buffer.from(editedSvg).toString("base64")}`
+    await route.fulfill({
+      contentType: "text/html; charset=utf-8",
+      body: `<!doctype html>
+        <button id="save">Save</button>
+        <script>
+          const send = message => parent.postMessage(JSON.stringify(message), "*")
+          window.addEventListener("message", event => {
+            const message = JSON.parse(event.data)
+            if (message.action === "export")
+              send({ event: "export", data: ${JSON.stringify(dataUrl)} })
+          })
+          document.querySelector("#save").addEventListener("click", () => {
+            send({ event: "save", xml: "<mxGraphModel />" })
+          })
+          setTimeout(() => send({ event: "init" }), 20)
+        </script>`,
+    })
+  })
+
+  const mediaSave = page.waitForResponse(response =>
+    response.url().includes(`/api/media/${copiedId}`)
+    && response.request().method() === "PUT",
+  )
+  await page.getByRole("button", { name: "draw.ioで再編集" }).click()
+  await page.frameLocator('iframe[title="draw.io editor"]').getByRole("button", { name: "Save" }).click()
+  expect((await mediaSave).ok()).toBeTruthy()
+  await expect.poll(() => previewImage.getAttribute("src")).not.toBe(initialImageSrc)
+  const updatedImageSrc = await previewImage.getAttribute("src")
+  expect(updatedImageSrc).toBeTruthy()
+
+  await page.getByRole("button", { name: "保存", exact: true }).click()
+  await expect(page).toHaveURL(`/wiki/${targetPath}`)
+  const renderedImage = page.locator(`img[src="${updatedImageSrc}"]`).first()
+  await expect(renderedImage).toBeVisible()
+  await expect.poll(() => renderedImage.evaluate((image: HTMLImageElement) => {
+    const canvas = document.createElement("canvas")
+    canvas.width = 1
+    canvas.height = 1
+    const context = canvas.getContext("2d")
+    context?.drawImage(image, 0, 0, 1, 1)
+    return Array.from(context?.getImageData(0, 0, 1, 1).data ?? [])
+  })).toEqual([0, 255, 0, 255])
+  expect(await (await page.request.get(`/uploads/${copiedFilename}`)).text()).toBe(editedSvg)
+
+  await page.getByRole("link", { name: "編集" }).click()
+  await expect(page).toHaveURL(`/edit/${targetPath}`)
+  await expect(page.getByRole("button", { name: "draw.ioで再編集" })).toBeVisible()
+  await expect(markdownEditor(page)).toHaveValue(copiedContent)
 })
 
 test("editor tabs fit the viewport and work on mobile", async ({ page }) => {
