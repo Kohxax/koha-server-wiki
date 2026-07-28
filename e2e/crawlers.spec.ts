@@ -1,13 +1,10 @@
-import { expect, test } from "@playwright/test"
+import { createPage, expect, test } from "./helpers"
 
 test.use({ storageState: "e2e/.auth/editor.json" })
 
 test("public pages provide crawler metadata and sitemap entries", async ({ page }) => {
   const path = `e2e-crawler-${Date.now()}`
-  const response = await page.request.put(`/api/pages/${path}`, {
-    data: { title: "クローラー確認", description: "ページの説明", content: "# 公開ページ", expectedUpdatedAt: null },
-  })
-  expect(response.ok()).toBeTruthy()
+  await createPage(page, path, { title: "クローラー確認", description: "ページの説明", content: "# 公開ページ" })
 
   await page.goto(`/wiki/${path}`)
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "クローラー確認")

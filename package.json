@@ -14,8 +14,8 @@
     "db:migrate": "tsx server/database/migrate.ts",
     "lint": "eslint .",
     "test": "pnpm test:unit",
-    "test:unit": "vitest run",
-    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
     "check": "pnpm lint && pnpm typecheck && pnpm test:unit",
     "test:e2e": "playwright test"
   },

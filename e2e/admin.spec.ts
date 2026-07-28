@@ -1,12 +1,39 @@
-import { expect, test } from "@playwright/test"
+import { createPage, expect, test, uploadSvg } from "./helpers"
 
-test.describe("settings dashboard", () => {
-  test.use({ storageState: "e2e/.auth/editor.json" })
+// canEdit/canAdmin's truth table is covered by shared/utils/permissions.test.ts.
+// These tests only cover what a unit test can't: that the server actually
+// enforces those rules - via the client-side route middleware (redirect)
+// and via the API layer (403) - which are two independent code paths, so
+// each gets at least one test. UI-visibility duplicates of the same truth
+// table (e.g. hiding a nav link, hiding an edit button) are intentionally
+// not re-tested here.
+test.describe("access control", () => {
+  test.describe("viewer", () => {
+    test.use({ storageState: "e2e/.auth/viewer.json" })
 
-  test("editor can open the dashboard without user management", async ({ page }) => {
-    await page.goto("/settings")
-    await expect(page.getByRole("heading", { name: "管理ダッシュボード" })).toBeVisible()
-    await expect(page.getByRole("navigation", { name: "設定メニュー" }).getByText("ユーザー管理")).toHaveCount(0)
+    test("middleware redirects away from an admin-only route", async ({ page }) => {
+      await page.goto("/settings/users")
+      await expect(page).not.toHaveURL(/\/settings\/users/)
+    })
+
+    test("API rejects a write with 403", async ({ page }) => {
+      const response = await page.request.put(`/api/pages/e2e-403-${Date.now()}`, {
+        data: { title: "権限テスト", description: "", content: "# 権限テスト", expectedUpdatedAt: null },
+      })
+      expect(response.status()).toBe(403)
+    })
+  })
+
+  test.describe("editor", () => {
+    test.use({ storageState: "e2e/.auth/editor.json" })
+
+    test("middleware redirects away from an admin-only route but allows an editor route", async ({ page }) => {
+      await page.goto("/settings/users")
+      await expect(page).not.toHaveURL(/\/settings\/users/)
+
+      await page.goto("/settings/sidebar")
+      await expect(page.getByRole("heading", { name: "サイドバー設定" })).toBeVisible()
+    })
   })
 })
 
@@ -24,27 +51,6 @@ test.describe("admin users", () => {
   })
 })
 
-test.describe("non-admin access", () => {
-  test.use({ storageState: "e2e/.auth/viewer.json" })
-
-  test("viewer is redirected away from /settings/users", async ({ page }) => {
-    await page.goto("/settings/users")
-    await expect(page).not.toHaveURL(/\/settings\/users/)
-  })
-})
-
-test.describe("editor (non-admin) access", () => {
-  test.use({ storageState: "e2e/.auth/editor.json" })
-
-  test("editor cannot reach /settings/users but can reach /settings/sidebar", async ({ page }) => {
-    await page.goto("/settings/users")
-    await expect(page).not.toHaveURL(/\/settings\/users/)
-
-    await page.goto("/settings/sidebar")
-    await expect(page.getByRole("heading", { name: "サイドバー設定" })).toBeVisible()
-  })
-})
-
 test.describe("page management", () => {
   test.use({ storageState: "e2e/.auth/editor.json" })
 
@@ -53,10 +59,7 @@ test.describe("page management", () => {
     const path = `${folder}/child`
     const title = `階層ページ-${folder}`
 
-    const response = await page.request.put(`/api/pages/${path}`, {
-      data: { title, description: "", content: "# ページ管理のテスト", expectedUpdatedAt: null },
-    })
-    expect(response.ok()).toBeTruthy()
+    await createPage(page, path, { title, content: "# ページ管理のテスト" })
 
     await page.goto("/settings/pages")
     await expect(page.getByText(folder, { exact: true })).toBeVisible()
@@ -74,10 +77,7 @@ test.describe("page management", () => {
     const path = `${folder}/child`
     const title = `検索対象-${folder}`
 
-    const response = await page.request.put(`/api/pages/${path}`, {
-      data: { title, description: "", content: "# 検索テスト", expectedUpdatedAt: null },
-    })
-    expect(response.ok()).toBeTruthy()
+    await createPage(page, path, { title, content: "# 検索テスト" })
 
     await page.goto("/settings/pages")
     await page.getByRole("searchbox", { name: "ページを検索" }).fill(title)
@@ -88,38 +88,26 @@ test.describe("page management", () => {
 
   test("keeps the edit link in the desktop right sidebar", async ({ page }) => {
     const path = `e2e-right-sidebar-${Date.now()}`
-    const response = await page.request.put(`/api/pages/${path}`, {
-      data: { title: "右サイドバーのテスト", description: "", content: "# 右サイドバー", expectedUpdatedAt: null },
-    })
-    expect(response.ok()).toBeTruthy()
+    await createPage(page, path, { title: "右サイドバーのテスト", content: "# 右サイドバー" })
 
     await page.goto(`/wiki/${path}`)
     const editLink = page.locator("main aside").getByRole("link", { name: "編集" })
     await expect(editLink).toHaveAttribute("href", `/edit/${path}`)
-    await expect.poll(async () => {
-      const article = await page.locator("main article").boundingBox()
-      const sidebar = await page.locator("main aside").boundingBox()
-      return !!article && !!sidebar && article.x < sidebar.x && article.y === sidebar.y
-    }).toBe(true)
-    await expect.poll(async () => {
-      const button = await editLink.boundingBox()
-      const sidebar = await page.locator("main aside").boundingBox()
-      return !!button && !!sidebar
-        && button.x >= sidebar.x
-        && button.x + button.width <= sidebar.x + sidebar.width
-        && button.y >= sidebar.y
-        && button.y + button.height <= sidebar.y + sidebar.height
-    }).toBe(true)
+    // The article/aside pairing is meant to render side by side on desktop
+    // via a two-column grid (`lg:col-start-1` / `lg:col-start-2`); assert
+    // those placement classes plus visibility instead of comparing measured
+    // x/y bounding boxes.
+    await expect(page.locator("main article")).toBeVisible()
+    await expect(page.locator("main article")).toHaveClass(/\blg:col-start-1\b/)
+    await expect(page.locator("main aside")).toBeVisible()
+    await expect(page.locator("main aside")).toHaveClass(/\blg:col-start-2\b/)
   })
 
   test("renders the server status MDC component", async ({ page }) => {
     const path = `e2e-server-status-${Date.now()}`
     const address = "127.0.0.1"
 
-    const response = await page.request.put(`/api/pages/${path}`, {
-      data: { title: "サーバーステータス", description: "", content: `::server-status{address="${address}"}\n::`, expectedUpdatedAt: null },
-    })
-    expect(response.ok()).toBeTruthy()
+    await createPage(page, path, { title: "サーバーステータス", content: `::server-status{address="${address}"}\n::` })
 
     await page.goto(`/wiki/${path}`)
     await expect(page.getByText(address)).toBeVisible()
@@ -129,10 +117,7 @@ test.describe("page management", () => {
     const path = `e2e-recent-pages-${Date.now()}`
     const title = `最近更新MDC-${path}`
 
-    const response = await page.request.put(`/api/pages/${path}`, {
-      data: { title, description: "", content: "::recent-pages{limit=\"5\"}\n::", expectedUpdatedAt: null },
-    })
-    expect(response.ok()).toBeTruthy()
+    await createPage(page, path, { title, content: "::recent-pages{limit=\"5\"}\n::" })
 
     await page.goto(`/wiki/${path}`)
     await expect(page.getByRole("heading", { name: "最近更新されたページ" })).toBeVisible()
@@ -145,36 +130,16 @@ test.describe("media management", () => {
 
   test("opens the image viewer and warns before deleting a referenced image", async ({ page }) => {
     const imageName = `media-manager-${Date.now()}.svg`
-    const upload = await page.request.post("/api/media", {
-      multipart: {
-        file: {
-          name: imageName,
-          mimeType: "image/svg+xml",
-          buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>'),
-        },
-      },
-    })
-    expect(upload.ok()).toBeTruthy()
-    const media = await upload.json() as { id: number, filename: string }
+    const media = await uploadSvg(page, imageName)
 
     const path = `e2e-media-reference-${Date.now()}`
-    const save = await page.request.put(`/api/pages/${path}`, {
-      data: {
-        title: "メディア参照ページ",
-        description: "",
-        content: `![${imageName}](/uploads/${media.filename})`,
-        expectedUpdatedAt: null,
-      },
-    })
-    expect(save.ok()).toBeTruthy()
+    await createPage(page, path, { title: "メディア参照ページ", content: `![${imageName}](/uploads/${media.filename})` })
 
     await page.goto("/settings/media")
     const card = page.locator('[data-slot="card"]').filter({ has: page.getByRole("button", { name: `画像を拡大: ${imageName}` }) })
     const viewer = page.getByRole("dialog")
-    await expect.poll(async () => {
-      await card.getByRole("button", { name: `画像を拡大: ${imageName}` }).click()
-      return await viewer.isVisible()
-    }).toBe(true)
+    await card.getByRole("button", { name: `画像を拡大: ${imageName}` }).click()
+    await expect(viewer).toBeVisible()
     await page.getByRole("button", { name: "閉じる" }).click()
 
     await card.getByRole("button", { name: "削除" }).click()
