@@ -5,7 +5,7 @@ import { wikiPageUrl } from '~~/shared/utils/wiki-url'
 const open = defineModel<boolean>('open', { required: true })
 const emit = defineEmits<{ insert: [markdown: string] }>()
 const query = ref('')
-const { data: tree } = await useFetch<TreeNode[]>('/api/pages/tree', { key: 'editor-page-links' })
+const { data: tree } = await usePageTree()
 
 const pages = computed(() => {
   const result: { label: string, path: string }[] = []

@@ -4,10 +4,7 @@ import type { MediaDto } from "~~/shared/types/api"
 const open = defineModel<boolean>("open", { default: false })
 const emit = defineEmits<{ insert: [markdown: string] }>()
 
-const { data: items, refresh } = await useFetch<MediaDto[]>("/api/media", {
-  key: "media-library",
-  immediate: false,
-})
+const { data: items, refresh } = await useMediaLibrary({ immediate: false })
 
 const uploading = ref(false)
 const errorMessage = ref("")

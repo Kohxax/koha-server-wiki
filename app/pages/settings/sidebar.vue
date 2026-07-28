@@ -17,7 +17,7 @@ import {
 definePageMeta({ middleware: ["require-editor"] })
 
 const { data: sidebar, refresh } = await useFetch<SidebarDto>("/api/sidebar", { key: "admin-sidebar" })
-const { data: allPagesTree } = await useFetch<TreeNode[]>("/api/pages/tree", { key: "admin-sidebar-pages" })
+const { data: allPagesTree } = await usePageTree()
 
 const mode = ref<"auto" | "manual">(sidebar.value?.mode ?? "auto")
 // The outline editor always works on the persisted manual tree, independent of the

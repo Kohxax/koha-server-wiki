@@ -54,7 +54,7 @@ async function save(returnToPage = true) {
     existing.value = savedPage
     clearNuxtData(`page:${path.value}`)
     clearNuxtData(`page:${savedPage.path}`)
-    await Promise.all([refreshNuxtData("sidebar"), refreshNuxtData("editor-page-links")])
+    await Promise.all([refreshNuxtData("sidebar"), refreshPageTree()])
     if (returnToPage)
       await navigateTo(wikiPageUrl(savedPage.path))
   } catch {
@@ -96,7 +96,7 @@ async function duplicate() {
       body: { path: targetPath, title: targetTitle },
     })
     duplicateDialogOpen.value = false
-    await Promise.all([refreshNuxtData("sidebar"), refreshNuxtData("editor-page-links")])
+    await Promise.all([refreshNuxtData("sidebar"), refreshPageTree()])
     await navigateTo(`/edit/${duplicated.path}`)
   } catch {
     duplicateError.value = "ページの複製に失敗しました。パスが重複していないか確認してください"

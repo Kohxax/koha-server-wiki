@@ -5,7 +5,7 @@ import { wikiPageUrl } from "~~/shared/utils/wiki-url"
 
 definePageMeta({ middleware: ["require-editor"] })
 
-const { data: items, refresh } = await useFetch<MediaDto[]>("/api/media", { key: "admin-media" })
+const { data: items, refresh } = await useMediaLibrary()
 const deletingId = ref<number | null>(null)
 const checkingId = ref<number | null>(null)
 const itemToDelete = ref<MediaDto | null>(null)

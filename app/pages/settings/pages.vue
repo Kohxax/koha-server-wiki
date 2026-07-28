@@ -9,7 +9,7 @@ interface ManagedPage {
   path: string
 }
 
-const { data: tree, refresh } = await useFetch<TreeNode[]>("/api/pages/tree", { key: "settings-pages" })
+const { data: tree, refresh } = await usePageTree()
 const deletingPath = ref<string | null>(null)
 const pageToDelete = ref<ManagedPage | null>(null)
 const searchQuery = ref("")

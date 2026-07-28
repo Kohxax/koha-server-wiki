@@ -13,8 +13,12 @@ export const ALLOWED_MIME_TO_EXT: Record<string, string> = {
   "image/svg+xml": "svg",
 }
 
+export function resolveUploadDir(): string {
+  return useRuntimeConfig().uploadDir
+}
+
 export function uploadDir(): string {
-  const dir = useRuntimeConfig().uploadDir
+  const dir = resolveUploadDir()
   mkdirSync(dir, { recursive: true })
   return dir
 }

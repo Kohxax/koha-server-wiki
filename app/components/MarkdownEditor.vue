@@ -25,14 +25,11 @@ async function updatePreview(value: string) {
 }
 
 watch(model, (value) => {
+  if (props.view !== "preview")
+    return
   clearTimeout(previewTimer)
   previewTimer = setTimeout(() => void updatePreview(value), 150)
 }, { immediate: true })
-
-onMounted(() => {
-  if (props.view === "preview")
-    void updatePreview(model.value)
-})
 
 onBeforeUnmount(() => clearTimeout(previewTimer))
 

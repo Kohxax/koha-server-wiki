@@ -64,6 +64,7 @@ export default defineNuxtConfig({
   },
   fonts: {
     families: [
+      { name: 'JetBrains Mono', provider: 'google', weights: [400, 500, 600, 700] },
       { name: 'Noto Sans JP', provider: 'google', weights: [400, 500, 600, 700] },
     ],
   },

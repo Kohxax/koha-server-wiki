@@ -70,7 +70,7 @@ test.describe("page management", () => {
   })
 
   test("filters pages by title and keeps matching nested pages visible", async ({ page }) => {
-    const folder = `e2e-search-${Date.now()}`
+    const folder = `e2e-manage-${Date.now()}`
     const path = `${folder}/child`
     const title = `検索対象-${folder}`
 
