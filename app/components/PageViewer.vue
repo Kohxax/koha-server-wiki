@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { usePreferredReducedMotion } from "@vueuse/core"
 import ogImage from "~/assets/images/face.webp?url&no-inline"
 import grassBlockUrl from "~/assets/images/grassblock.webp?url&no-inline"
+import { formatDate, formatDateTime } from "~/lib/format-date"
 import type { LinkPreviewDto, PageDetailDto } from "~~/shared/types/api"
 import { internalPagePathFromHref, isHttpsHref } from "~~/shared/utils/link-preview"
+import { canEdit as hasEditRole } from "~~/shared/utils/permissions"
 import { wikiPageUrl } from "~~/shared/utils/wiki-url"
 
 const props = defineProps<{ path: string }>()
@@ -12,12 +15,11 @@ const { data: page, status, error } = await useFetch<PageDetailDto>(() => `/api/
   key: () => `page:${props.path}`,
 })
 
-const canEdit = computed(() => user.value?.role === "editor" || user.value?.role === "admin")
+const canEdit = computed(() => hasEditRole(user.value?.role))
 const notFound = computed(() => error.value?.statusCode === 404)
-const updatedAt = computed(() => page.value?.updatedAt ? new Date(page.value.updatedAt).toLocaleString("ja-JP") : "")
-const runtimeConfig = useRuntimeConfig()
-const requestUrl = useRequestURL()
-const siteOrigin = computed(() => (runtimeConfig.public.siteUrl || requestUrl.origin).replace(/\/$/, ""))
+const updatedAt = computed(() => page.value?.updatedAt ? formatDateTime(page.value.updatedAt) : "")
+const reducedMotion = usePreferredReducedMotion()
+const siteOrigin = useSiteOrigin()
 const pageTitle = computed(() => page.value?.title ?? props.path)
 const pageDescription = computed(() => page.value?.description || "こは鯖の情報をまとめたMinecraftサーバーWiki")
 const canonicalUrl = computed(() => new URL(wikiPageUrl(page.value?.path ?? props.path), `${siteOrigin.value}/`).href)
@@ -115,7 +117,7 @@ function useFallbackPreviewImage(event: Event) {
 }
 
 function formatPreviewUpdatedAt(value: string | null): string | null {
-  return value ? new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium" }).format(new Date(value)) : null
+  return value ? formatDate(value) : null
 }
 
 onBeforeUnmount(() => {
@@ -127,7 +129,7 @@ function scrollToHeading(id: string) {
   const target = document.getElementById(id)
   if (!target)
     return
-  target.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" })
+  target.scrollIntoView({ behavior: reducedMotion.value === "reduce" ? "auto" : "smooth", block: "start" })
   window.history.replaceState(null, "", `#${encodeURIComponent(id)}`)
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { isValidPagePath, normalizePagePath } from "../../shared/utils/page-path"
+import { isValidPagePath, normalizePagePath } from "./page-path"
 
 describe("normalizePagePath", () => {
   it("trims surrounding whitespace and slashes", () => {

@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { HistoryIcon } from "@lucide/vue"
-
-interface TocEntry {
-  id: string
-  text: string
-  depth: number
-  children?: TocEntry[]
-}
+import type { TocEntry } from "~~/shared/types/api"
 
 defineProps<{
   canEdit: boolean

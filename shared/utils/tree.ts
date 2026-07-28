@@ -1,4 +1,4 @@
-import type { TreeNode } from "../../shared/types/api"
+import type { TreeNode } from "../types/api"
 
 interface TreeBuilderNode {
   segment: string
@@ -45,4 +45,20 @@ export function buildPageTree(pages: { path: string, title: string }[]): TreeNod
   const tree = [...root.children.values()].map(child => toTreeNode(child, titleByPath))
   sortNodes(tree)
   return tree
+}
+
+/** Flattens a page tree into a list of every node that links to a page (i.e. has a path). */
+export function flattenPageTree(nodes: TreeNode[]): { label: string, path: string }[] {
+  const result: { label: string, path: string }[] = []
+
+  function walk(list: TreeNode[]) {
+    for (const node of list) {
+      if (node.path)
+        result.push({ label: node.label, path: node.path })
+      walk(node.children)
+    }
+  }
+
+  walk(nodes)
+  return result
 }

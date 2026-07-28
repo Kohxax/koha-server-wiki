@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import {
-  FolderCogIcon, ImageIcon, LayoutDashboardIcon, MenuIcon, PanelLeftCloseIcon,
-  PanelLeftOpenIcon, UsersIcon, WaypointsIcon,
-} from "@lucide/vue"
-import type { Component } from "vue"
-import { visibleSettingsMenu, type SettingsIcon } from "~/lib/settings-menu"
+import { MenuIcon, PanelLeftCloseIcon, PanelLeftOpenIcon } from "@lucide/vue"
+import { visibleSettingsMenu } from "~/lib/settings-menu"
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ toggle: [] }>()
@@ -12,14 +8,6 @@ const emit = defineEmits<{ toggle: [] }>()
 const route = useRoute()
 const { user } = useUserSession()
 const menu = computed(() => visibleSettingsMenu(user.value?.role))
-
-const icons: Record<SettingsIcon, Component> = {
-  dashboard: LayoutDashboardIcon,
-  pages: WaypointsIcon,
-  sidebar: FolderCogIcon,
-  media: ImageIcon,
-  users: UsersIcon,
-}
 
 function isActive(to: string) {
   return to === "/settings" ? route.path === to : route.path.startsWith(`${to}/`) || route.path === to
@@ -53,7 +41,7 @@ function isActive(to: string) {
           class="flex items-center gap-2 border-l-2 border-transparent px-2 py-2 text-sm hover:bg-muted"
           :class="isActive(item.to) ? 'border-primary bg-primary/10 font-medium text-primary' : ''"
         >
-          <component :is="icons[item.icon]" class="size-4 shrink-0" />
+          <component :is="item.icon" class="size-4 shrink-0" />
           <span>{{ item.label }}</span>
         </NuxtLink>
       </nav>

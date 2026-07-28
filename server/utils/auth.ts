@@ -1,10 +1,14 @@
 import type { H3Event } from "h3"
+import process from "node:process"
 import { eq } from "drizzle-orm"
 import { createError } from "h3"
 import { useDb } from "../database/client"
 import { users } from "../database/schema"
 import type { User } from "../database/schema"
-import { canAdmin, canEdit } from "../../shared/utils/permissions"
+
+export function isDevAuthBypassEnabled(): boolean {
+  return Boolean(process.env.NUXT_DEV_AUTH_BYPASS)
+}
 
 async function currentDbUser(event: H3Event): Promise<User> {
   const session = await requireUserSession(event)

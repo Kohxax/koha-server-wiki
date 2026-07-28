@@ -4,7 +4,6 @@ import { and, eq, sql } from "drizzle-orm"
 import type { useDb } from "../database/client"
 import type { User } from "../database/schema"
 import { media, pageRevisions, pages, settings } from "../database/schema"
-import type { TreeNode } from "../../shared/types/api"
 import { removePagePathFromTree, replacePagePathInTree } from "../utils/sidebar-tree"
 import { generateFilename, uploadDir, writeUploadAtomically } from "../utils/uploads"
 

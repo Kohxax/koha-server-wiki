@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { ArrowUpIcon } from '@lucide/vue'
+import { usePreferredReducedMotion } from '@vueuse/core'
 
 const visible = ref(false)
+const reducedMotion = usePreferredReducedMotion()
 
 function updateVisibility() {
   visible.value = window.scrollY >= window.innerHeight / 2
 }
 
 function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  window.scrollTo({ top: 0, behavior: reducedMotion.value === 'reduce' ? 'auto' : 'smooth' })
 }
 
 onMounted(() => {

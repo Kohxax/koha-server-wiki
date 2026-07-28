@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { buildPageTree } from "./tree"
+import { buildPageTree, flattenPageTree } from "./tree"
 
 describe("buildPageTree", () => {
   it("builds a nested tree from flat paths", () => {
@@ -22,9 +22,9 @@ describe("buildPageTree", () => {
 
   it("marks intermediate folders without their own page as pathless", () => {
     const tree = buildPageTree([{ path: "a/b/c", title: "C" }])
-    expect(tree[0].path).toBeUndefined()
-    expect(tree[0].children[0].path).toBeUndefined()
-    expect(tree[0].children[0].children[0].path).toBe("a/b/c")
+    expect(tree[0]!.path).toBeUndefined()
+    expect(tree[0]!.children[0]!.path).toBeUndefined()
+    expect(tree[0]!.children[0]!.children[0]!.path).toBe("a/b/c")
   })
 
   it("supports a folder segment that is itself a page", () => {
@@ -35,7 +35,7 @@ describe("buildPageTree", () => {
 
     const buildNode = tree.find(n => n.label === "建築")
     expect(buildNode?.path).toBe("build")
-    expect(buildNode?.children[0].path).toBe("build/base")
+    expect(buildNode?.children[0]!.path).toBe("build/base")
   })
 
   it("sorts children by label", () => {
@@ -44,5 +44,25 @@ describe("buildPageTree", () => {
       { path: "a", title: "a" },
     ])
     expect(tree.map(n => n.label)).toEqual(["a", "b"])
+  })
+})
+
+describe("flattenPageTree", () => {
+  it("lists every node that links to a page, skipping pathless folders", () => {
+    const tree = buildPageTree([
+      { path: "home", title: "ホーム" },
+      { path: "build/base", title: "拠点" },
+      { path: "build/farm", title: "農場" },
+    ])
+
+    expect(flattenPageTree(tree).sort((a, b) => a.path.localeCompare(b.path))).toEqual([
+      { label: "拠点", path: "build/base" },
+      { label: "農場", path: "build/farm" },
+      { label: "ホーム", path: "home" },
+    ])
+  })
+
+  it("returns an empty list for an empty tree", () => {
+    expect(flattenPageTree([])).toEqual([])
   })
 })

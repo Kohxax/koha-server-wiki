@@ -1,24 +1,15 @@
 import { readFile, unlink, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { eq } from "drizzle-orm"
-import { useDb } from "../../database/client"
-import { media } from "../../database/schema"
-import { findMediaReferences } from "../../services/media"
+import { eq, ilike } from "drizzle-orm"
+import { media, pages } from "../../database/schema"
 
 export default defineEventHandler(async (event) => {
   await requireEditor(event)
 
-  const idParam = getRouterParam(event, "id") ?? ""
-  const id = Number(idParam)
-  if (!Number.isInteger(id))
-    throw createError({ statusCode: 400, statusMessage: "Invalid media id" })
+  const { db, id, media: existing } = await requireMediaById(event)
 
-  const db = useDb()
-  const [existing] = await db.select().from(media).where(eq(media.id, id))
-  if (!existing)
-    throw createError({ statusCode: 404, statusMessage: "Media not found" })
-
-  const references = await findMediaReferences(db, existing.filename)
+  const references = await db.select({ path: pages.path, title: pages.title }).from(pages)
+    .where(ilike(pages.content, `%/uploads/${existing.filename}%`))
   if (references.length)
     throw createError({ statusCode: 409, statusMessage: "This media is still referenced by a page. Remove the reference first." })
 

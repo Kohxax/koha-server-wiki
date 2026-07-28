@@ -1,5 +1,5 @@
-import type { TreeNode } from "../types/api"
-import type { SidebarIconName } from "./sidebar-icons"
+import type { TreeNode } from "~~/shared/types/api"
+import type { SidebarIconName } from "~~/shared/utils/sidebar-icons"
 
 export interface OutlineNode {
   id: string

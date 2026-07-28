@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { PencilIcon } from "@lucide/vue"
+import { canEdit as hasEditRole } from "~~/shared/utils/permissions"
 
 const props = withDefaults(defineProps<{
   src?: string
@@ -12,7 +13,7 @@ const props = withDefaults(defineProps<{
 })
 
 const { user } = useUserSession()
-const canEdit = computed(() => user.value?.role === "editor" || user.value?.role === "admin")
+const canEdit = computed(() => hasEditRole(user.value?.role))
 const isEditing = useDiagramEditing()
 const canReedit = computed(() => canEdit.value && isEditing.value)
 const mediaId = computed(() => Number(props.mediaId))

@@ -2,6 +2,7 @@
 import { MoonIcon, PlusIcon, SearchIcon, SettingsIcon, SunIcon } from '@lucide/vue'
 import { onClickOutside, watchDebounced } from '@vueuse/core'
 import type { SearchResultDto } from '~~/shared/types/api'
+import { canEdit as hasEditRole } from '~~/shared/utils/permissions'
 import { wikiPageUrl } from '~~/shared/utils/wiki-url'
 
 const colorMode = useColorMode()
@@ -12,7 +13,7 @@ const isDark = computed({
   set: (value) => { colorMode.preference = value ? 'dark' : 'light' },
 })
 
-const canEdit = computed(() => user.value?.role === 'editor' || user.value?.role === 'admin')
+const canEdit = computed(() => hasEditRole(user.value?.role))
 const searchQuery = ref('')
 const suggestions = ref<SearchResultDto[]>([])
 const suggestionsStatus = ref<'idle' | 'pending' | 'success' | 'error'>('idle')

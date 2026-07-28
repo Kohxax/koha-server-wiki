@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { MediaDto, MediaReferenceDto } from "~~/shared/types/api"
-import { apiErrorMessage } from "~~/shared/utils/api-error"
+import { apiErrorMessage } from "~/lib/api-error"
 import { wikiPageUrl } from "~~/shared/utils/wiki-url"
 
 definePageMeta({ middleware: ["require-editor"] })

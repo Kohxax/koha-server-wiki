@@ -8,7 +8,7 @@ import {
   DRAWIO_ORIGIN,
   parseDrawioMessage,
   shouldHandleDrawioMessage,
-} from "~~/shared/utils/drawio"
+} from "~/lib/drawio"
 
 const props = defineProps<{
   initialXml?: string

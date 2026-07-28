@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatDateTime } from "~/lib/format-date"
 import type { RecentPageDto } from "~~/shared/types/api"
 import { wikiPageUrl } from "~~/shared/utils/wiki-url"
 
@@ -12,10 +13,6 @@ const endpoint = computed(() => `/api/pages/recent?limit=${limit.value}`)
 const { data: pages, status, error, refresh } = await useFetch<RecentPageDto[]>(endpoint, {
   key: () => `recent-pages:${limit.value}`,
 })
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
-}
 </script>
 
 <template>
@@ -34,7 +31,7 @@ function formatDate(value: string) {
         <ul class="divide-y">
           <li v-for="page in pages" :key="page.path" class="flex flex-wrap items-center justify-between gap-2 p-4">
             <NuxtLink :to="wikiPageUrl(page.path)" class="font-medium hover:underline">{{ page.title }}</NuxtLink>
-            <time :datetime="page.updatedAt" class="text-xs text-muted-foreground">{{ formatDate(page.updatedAt) }}</time>
+            <time :datetime="page.updatedAt" class="text-xs text-muted-foreground">{{ formatDateTime(page.updatedAt) }}</time>
           </li>
         </ul>
       </UiCardContent>

@@ -1,11 +1,8 @@
 import { pages } from "../database/schema"
 import { useDb } from "../database/client"
-import { wikiPageUrl } from "../../shared/utils/wiki-url"
 
 export default defineEventHandler(async (event) => {
-  const runtimeConfig = useRuntimeConfig(event)
-  const requestUrl = getRequestURL(event)
-  const siteOrigin = (runtimeConfig.public.siteUrl || requestUrl.origin).replace(/\/$/, "")
+  const siteOrigin = resolveSiteOrigin(event)
   const rows = await useDb().select({ path: pages.path }).from(pages)
   const locations = new Set([new URL("/", `${siteOrigin}/`).href])
 

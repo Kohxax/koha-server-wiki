@@ -1,5 +1,8 @@
 import { lookup, resolveSrv } from "node:dns/promises"
 import net from "node:net"
+import type { MinecraftServerStatus } from "../../shared/types/api"
+import { createCachedFetcher } from "./cached-single-flight"
+import { isPublicIpAddress } from "./net-guard"
 
 const DEFAULT_PORT = 25565
 const STATUS_TIMEOUT_MS = 3_000
@@ -14,15 +17,6 @@ export interface MinecraftServerAddress {
   hasExplicitPort: boolean
 }
 
-export interface MinecraftServerStatus {
-  address: string
-  online: boolean
-  players?: { online: number, max: number }
-  version?: string
-  description?: string
-  favicon?: string
-}
-
 export class InvalidMinecraftServerAddressError extends Error {}
 
 export class InvalidMinecraftStatusTargetsError extends Error {}
@@ -31,13 +25,7 @@ interface ResolvedMinecraftServer extends MinecraftServerAddress {
   connectHost: string
 }
 
-interface CachedStatus {
-  expiresAt: number
-  value: MinecraftServerStatus
-}
-
-const statusCache = new Map<string, CachedStatus>()
-const pendingRequests = new Map<string, Promise<MinecraftServerStatus>>()
+const getCachedStatus = createCachedFetcher<MinecraftServerStatus>({ ttlMs: CACHE_TTL_MS, maxEntries: MAX_CACHE_ENTRIES })
 
 export function parseMinecraftServerAddress(raw: string): MinecraftServerAddress {
   const value = raw.trim()
@@ -104,33 +92,10 @@ function isValidHostname(host: string): boolean {
   return /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(host)
 }
 
-export function isPublicIpv4(address: string): boolean {
-  const octets = address.split(".").map(Number)
-  if (octets.length !== 4 || octets.some(octet => !Number.isInteger(octet) || octet < 0 || octet > 255))
-    return false
-
-  const [a = Number.NaN, b = Number.NaN, c = Number.NaN] = octets
-  if (a === 0 || a === 10 || a === 127 || a >= 224)
-    return false
-  if (a === 100 && b >= 64 && b <= 127)
-    return false
-  if (a === 169 && b === 254)
-    return false
-  if (a === 172 && b >= 16 && b <= 31)
-    return false
-  if (a === 192 && (b === 0 || b === 168))
-    return false
-  if (a === 198 && (b === 18 || b === 19 || c === 51))
-    return false
-  if (a === 203 && b === 0 && c === 113)
-    return false
-  return true
-}
-
 async function resolvePublicMinecraftServer(address: MinecraftServerAddress): Promise<ResolvedMinecraftServer> {
   const endpoint = await resolveMinecraftEndpoint(address)
   if (net.isIP(endpoint.host) === 4) {
-    if (!isPublicIpv4(endpoint.host))
+    if (!isPublicIpAddress(endpoint.host))
       throw new InvalidMinecraftServerAddressError("Private server addresses are not allowed")
     return { ...address, port: endpoint.port, connectHost: endpoint.host }
   }
@@ -142,7 +107,7 @@ async function resolvePublicMinecraftServer(address: MinecraftServerAddress): Pr
     throw new InvalidMinecraftServerAddressError("Server host could not be resolved")
   }
 
-  const connectHost = records.find(record => isPublicIpv4(record.address))?.address
+  const connectHost = records.find(record => isPublicIpAddress(record.address))?.address
   if (!connectHost)
     throw new InvalidMinecraftServerAddressError("Private server addresses are not allowed")
 
@@ -320,35 +285,16 @@ async function pingMinecraftServer(server: ResolvedMinecraftServer): Promise<Min
 export async function getMinecraftServerStatus(rawAddress: string, targets: ReadonlyMap<string, MinecraftServerAddress> = new Map()): Promise<MinecraftServerStatus> {
   const address = parseMinecraftServerAddress(rawAddress)
   const key = `${address.host}:${address.port}:${address.hasExplicitPort ? "explicit" : "default"}`
-  const cached = statusCache.get(key)
-  if (cached && cached.expiresAt > Date.now())
-    return cached.value
-
-  const pending = pendingRequests.get(key)
-  if (pending)
-    return await pending
-
-  const request = (async () => {
+  return await getCachedStatus(key, async () => {
     const server = resolveConfiguredMinecraftServer(address, targets) ?? await resolvePublicMinecraftServer(address)
-    let value: MinecraftServerStatus
     try {
-      value = await pingMinecraftServer(server)
+      return await pingMinecraftServer(server)
     } catch (error) {
       console.warn("Minecraft status request failed", {
         address: `${address.host}:${server.port}`,
         reason: error instanceof Error ? error.message : "Unknown error",
       })
-      value = { address: `${server.host}:${server.port}`, online: false }
+      return { address: `${server.host}:${server.port}`, online: false }
     }
-    if (statusCache.size >= MAX_CACHE_ENTRIES)
-      statusCache.delete(statusCache.keys().next().value!)
-    statusCache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS })
-    return value
-  })()
-  pendingRequests.set(key, request)
-  try {
-    return await request
-  } finally {
-    pendingRequests.delete(key)
-  }
+  })
 }

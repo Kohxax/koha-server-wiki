@@ -1,25 +1,12 @@
 <script setup lang="ts">
-import { FolderCogIcon, ImageIcon, LayoutDashboardIcon, UsersIcon, WaypointsIcon } from "@lucide/vue"
-import type { Component } from "vue"
-import { visibleSettingsMenu, type SettingsIcon } from "~/lib/settings-menu"
+import { formatDateTime } from "~/lib/format-date"
+import { visibleSettingsMenu } from "~/lib/settings-menu"
 import type { SettingsSummaryDto } from "~~/shared/types/api"
 import { wikiPageUrl } from "~~/shared/utils/wiki-url"
 
 const { user } = useUserSession()
 const { data: summary } = await useFetch<SettingsSummaryDto>("/api/settings/summary", { key: "settings-summary" })
 const menu = computed(() => visibleSettingsMenu(user.value?.role).filter(item => item.id !== "overview"))
-
-const icons: Record<SettingsIcon, Component> = {
-  dashboard: LayoutDashboardIcon,
-  pages: WaypointsIcon,
-  sidebar: FolderCogIcon,
-  media: ImageIcon,
-  users: UsersIcon,
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
-}
 
 useHead({ title: "設定" })
 </script>
@@ -52,7 +39,7 @@ useHead({ title: "設定" })
         <NuxtLink v-for="item in menu" :key="item.id" :to="item.to" class="group">
           <UiCard class="h-full transition-colors group-hover:bg-muted">
             <UiCardHeader class="flex-row items-center gap-3 space-y-0">
-              <component :is="icons[item.icon]" class="size-5" />
+              <component :is="item.icon" class="size-5" />
               <div>
                 <UiCardTitle class="text-base">{{ item.label }}</UiCardTitle>
                 <UiCardDescription>{{ item.description }}</UiCardDescription>
@@ -74,7 +61,7 @@ useHead({ title: "設定" })
                 <p class="font-mono text-xs text-muted-foreground">{{ page.path }}</p>
               </div>
               <p class="text-right text-xs text-muted-foreground">
-                {{ formatDate(page.updatedAt) }}<br>
+                {{ formatDateTime(page.updatedAt) }}<br>
                 {{ page.username ?? "不明なユーザー" }}
               </p>
             </li>

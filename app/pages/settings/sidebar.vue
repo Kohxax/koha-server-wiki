@@ -2,8 +2,9 @@
 import {
   ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, ArrowUpIcon, XIcon,
 } from "@lucide/vue"
-import type { SidebarDto, TreeNode } from "~~/shared/types/api"
+import type { SidebarDto } from "~~/shared/types/api"
 import { sidebarIconOptions, type SidebarIconName } from "~~/shared/utils/sidebar-icons"
+import { flattenPageTree } from "~~/shared/utils/tree"
 import {
   indentNode,
   moveNodeDown,
@@ -12,7 +13,7 @@ import {
   outlineToTree,
   treeToOutline,
   type OutlineNode,
-} from "~~/shared/utils/sidebar-outline"
+} from "~/lib/sidebar-outline"
 
 definePageMeta({ middleware: ["require-editor"] })
 
@@ -26,18 +27,7 @@ const outline = ref<OutlineNode[]>(treeToOutline(sidebar.value?.manualTree ?? []
 const saving = ref(false)
 let nextId = 0
 
-function availablePages(): { path: string, label: string }[] {
-  const result: { path: string, label: string }[] = []
-  function walk(nodes: TreeNode[]) {
-    for (const node of nodes) {
-      if (node.path)
-        result.push({ path: node.path, label: node.label })
-      walk(node.children)
-    }
-  }
-  walk(allPagesTree.value ?? [])
-  return result
-}
+const availablePages = computed(() => flattenPageTree(allPagesTree.value ?? []))
 
 async function changeMode(newMode: "auto" | "manual") {
   mode.value = newMode
@@ -50,7 +40,7 @@ function addHeading() {
 }
 
 function addPage(path: string) {
-  const page = availablePages().find(p => p.path === path)
+  const page = availablePages.value.find(p => p.path === path)
   if (!page)
     return
   outline.value = [...outline.value, { id: `new${nextId++}`, label: page.label, path: page.path, level: 0 }]
@@ -127,7 +117,7 @@ useHead({ title: "サイドバー設定" })
           <option value="" disabled>
             ページを選択...
           </option>
-          <option v-for="page in availablePages()" :key="page.path" :value="page.path">
+          <option v-for="page in availablePages" :key="page.path" :value="page.path">
             {{ page.label }} ({{ page.path }})
           </option>
         </select>

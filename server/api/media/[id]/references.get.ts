@@ -1,19 +1,11 @@
-import { eq } from "drizzle-orm"
-import { useDb } from "../../../database/client"
-import { media } from "../../../database/schema"
-import { findMediaReferences } from "../../../services/media"
+import { ilike } from "drizzle-orm"
+import { pages } from "../../../database/schema"
 
 export default defineEventHandler(async (event) => {
   await requireEditor(event)
 
-  const id = Number(getRouterParam(event, "id") ?? "")
-  if (!Number.isInteger(id))
-    throw createError({ statusCode: 400, statusMessage: "Invalid media id" })
+  const { db, media: existing } = await requireMediaById(event)
 
-  const db = useDb()
-  const [existing] = await db.select({ filename: media.filename }).from(media).where(eq(media.id, id))
-  if (!existing)
-    throw createError({ statusCode: 404, statusMessage: "Media not found" })
-
-  return findMediaReferences(db, existing.filename)
+  return db.select({ path: pages.path, title: pages.title }).from(pages)
+    .where(ilike(pages.content, `%/uploads/${existing.filename}%`))
 })

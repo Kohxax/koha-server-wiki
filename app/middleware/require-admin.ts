@@ -4,6 +4,6 @@ export default defineNuxtRouteMiddleware(() => {
   if (!loggedIn.value)
     return navigateTo(`/login?redirect=${encodeURIComponent(useRequestURL().pathname)}`)
 
-  if (user.value?.role !== "admin")
+  if (!canAdmin(user.value?.role))
     return navigateTo("/")
 })

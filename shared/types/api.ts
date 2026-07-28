@@ -51,6 +51,13 @@ export interface TreeNode {
   children: TreeNode[]
 }
 
+export interface TocEntry {
+  id: string
+  text: string
+  depth: number
+  children?: TocEntry[]
+}
+
 export interface SearchResultDto {
   path: string
   title: string
@@ -72,7 +79,7 @@ export interface SettingsSummaryDto {
   recentPages: Array<Pick<PageDto, "path" | "title" | "updatedAt"> & { username: string | null }>
 }
 
-export interface MinecraftServerStatusDto {
+export interface MinecraftServerStatus {
   address: string
   online: boolean
   players?: { online: number, max: number }

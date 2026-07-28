@@ -1,4 +1,4 @@
-import type { TreeNode } from "../types/api"
+import type { TreeNode } from "~~/shared/types/api"
 import { describe, expect, it } from "vitest"
 import {
   indentNode,

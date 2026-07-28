@@ -2,9 +2,7 @@
 import ogImage from "~/assets/images/face.webp?url&no-inline"
 
 const route = useRoute()
-const runtimeConfig = useRuntimeConfig()
-const requestUrl = useRequestURL()
-const siteOrigin = computed(() => (runtimeConfig.public.siteUrl || requestUrl.origin).replace(/\/$/, ""))
+const siteOrigin = useSiteOrigin()
 const canonicalUrl = computed(() => new URL(route.path, `${siteOrigin.value}/`).href)
 const isPrivateRoute = computed(() => /^\/(?:edit|settings|login|new|search)(?:\/|$)/.test(route.path))
 const ogImageUrl = computed(() => new URL(ogImage, `${siteOrigin.value}/`).href)

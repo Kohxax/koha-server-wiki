@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TreeNode } from '~~/shared/types/api'
+import { flattenPageTree } from '~~/shared/utils/tree'
 import { wikiPageUrl } from '~~/shared/utils/wiki-url'
 
 const open = defineModel<boolean>('open', { required: true })
@@ -8,15 +8,7 @@ const query = ref('')
 const { data: tree } = await usePageTree()
 
 const pages = computed(() => {
-  const result: { label: string, path: string }[] = []
-  const walk = (nodes: TreeNode[]) => {
-    for (const node of nodes) {
-      if (node.path)
-        result.push({ label: node.label, path: node.path })
-      walk(node.children)
-    }
-  }
-  walk(tree.value ?? [])
+  const result = flattenPageTree(tree.value ?? [])
   const normalizedQuery = query.value.trim().toLocaleLowerCase()
   return normalizedQuery
     ? result.filter(page => `${page.label} ${page.path}`.toLocaleLowerCase().includes(normalizedQuery))

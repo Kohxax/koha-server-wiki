@@ -1,5 +1,4 @@
 import { z } from "zod"
-import { sidebarIconNames } from "../../shared/utils/sidebar-icons"
 import { useDb } from "../database/client"
 import { settings } from "../database/schema"
 

@@ -1,18 +1,10 @@
 <script setup lang="ts">
 import { ServerCrashIcon, ServerIcon, UsersIcon } from "@lucide/vue"
-
-interface ServerStatus {
-  address: string
-  online: boolean
-  players?: { online: number, max: number }
-  version?: string
-  description?: string
-  favicon?: string
-}
+import type { MinecraftServerStatus } from "~~/shared/types/api"
 
 const props = defineProps<{ address: string }>()
 const endpoint = computed(() => `/api/server-status?address=${encodeURIComponent(props.address)}`)
-const { data, status, error, refresh } = useFetch<ServerStatus>(endpoint, {
+const { data, status, error, refresh } = useFetch<MinecraftServerStatus>(endpoint, {
   key: () => `minecraft-server-status:${props.address}`,
   server: false,
   lazy: true,

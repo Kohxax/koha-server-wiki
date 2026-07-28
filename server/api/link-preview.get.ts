@@ -1,6 +1,4 @@
 import { eq } from "drizzle-orm"
-import type { LinkPreviewDto } from "../../shared/types/api"
-import { internalPagePathFromHref, isHttpsHref } from "../../shared/utils/link-preview"
 import { useDb } from "../database/client"
 import { pages } from "../database/schema"
 import { getExternalLinkPreview } from "../utils/link-preview"

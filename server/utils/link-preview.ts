@@ -1,16 +1,13 @@
 import { lookup } from "node:dns/promises"
 import net from "node:net"
+import { createCachedFetcher } from "./cached-single-flight"
+import { isPublicIpAddress } from "./net-guard"
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1_000
 const MAX_CACHE_ENTRIES = 200
 const MAX_HTML_BYTES = 512 * 1_024
 const REQUEST_TIMEOUT_MS = 5_000
 const MAX_REDIRECTS = 3
-
-interface CachedPreview {
-  expiresAt: number
-  value: ExternalLinkPreview
-}
 
 export interface ExternalLinkPreview {
   title: string
@@ -19,43 +16,14 @@ export interface ExternalLinkPreview {
   siteName: string | null
 }
 
-const previewCache = new Map<string, CachedPreview>()
-const pendingPreviews = new Map<string, Promise<ExternalLinkPreview>>()
-
-function isUnsafeAddress(address: string): boolean {
-  if (net.isIP(address) === 4) {
-    const [first, second] = address.split(".").map(Number)
-    return first === 0
-      || first === 10
-      || first === 127
-      || first! >= 224
-      || (first === 100 && second! >= 64 && second! <= 127)
-      || (first === 169 && second === 254)
-      || (first === 172 && second! >= 16 && second! <= 31)
-      || (first === 192 && (second === 0 || second === 168))
-      || (first === 198 && (second === 18 || second === 19))
-  }
-
-  if (net.isIP(address) === 6) {
-    const value = address.toLowerCase()
-    const mappedV4 = value.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/)
-    return value === "::"
-      || value === "::1"
-      || value.startsWith("fc")
-      || value.startsWith("fd")
-      || /^fe[89ab]/.test(value)
-      || (mappedV4 ? isUnsafeAddress(mappedV4[1]!) : false)
-  }
-
-  return true
-}
+const getCachedPreview = createCachedFetcher<ExternalLinkPreview>({ ttlMs: CACHE_TTL_MS, maxEntries: MAX_CACHE_ENTRIES })
 
 async function assertSafeDestination(url: URL) {
   if (url.protocol !== "https:" || !url.hostname || url.username || url.password || net.isIP(url.hostname))
     throw new Error("Unsupported preview URL")
 
   const addresses = await lookup(url.hostname, { all: true, verbatim: true })
-  if (!addresses.length || addresses.some(({ address }) => isUnsafeAddress(address)))
+  if (!addresses.length || addresses.some(({ address }) => !isPublicIpAddress(address)))
     throw new Error("Unsafe preview destination")
 }
 
@@ -184,23 +152,5 @@ async function fetchExternalLinkPreview(rawUrl: string): Promise<ExternalLinkPre
 }
 
 export async function getExternalLinkPreview(rawUrl: string): Promise<ExternalLinkPreview> {
-  const cached = previewCache.get(rawUrl)
-  if (cached && cached.expiresAt > Date.now())
-    return cached.value
-
-  const pending = pendingPreviews.get(rawUrl)
-  if (pending)
-    return await pending
-
-  const request = fetchExternalLinkPreview(rawUrl)
-  pendingPreviews.set(rawUrl, request)
-  try {
-    const value = await request
-    if (previewCache.size >= MAX_CACHE_ENTRIES)
-      previewCache.delete(previewCache.keys().next().value!)
-    previewCache.set(rawUrl, { value, expiresAt: Date.now() + CACHE_TTL_MS })
-    return value
-  } finally {
-    pendingPreviews.delete(rawUrl)
-  }
+  return await getCachedPreview(rawUrl, () => fetchExternalLinkPreview(rawUrl))
 }
