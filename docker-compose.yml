@@ -39,7 +39,10 @@ services:
       - uploads:/data/uploads
 
   migrate:
-    image: koha-server-wiki:local
+    build:
+      context: .
+      target: migrate
+    image: koha-server-wiki:migrate
     read_only: true
     tmpfs:
       - /tmp

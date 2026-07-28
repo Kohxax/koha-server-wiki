@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { PageDto } from "~~/shared/types/api"
-import { isValidPagePath, normalizePagePath } from "~~/shared/utils/page-path"
 import { wikiPageUrl } from "~~/shared/utils/wiki-url"
 
 definePageMeta({ middleware: ["require-editor"] })
@@ -19,23 +18,21 @@ const title = ref(existing.value?.title ?? path.value.split("/").pop() ?? "")
 const description = ref(existing.value?.description ?? "")
 const content = ref(existing.value?.content ?? "")
 const pagePath = ref(path.value)
-const savedTitle = ref(title.value)
-const savedDescription = ref(description.value)
-const savedContent = ref(content.value)
-const savedPath = ref(pagePath.value)
+const saved = ref({
+  title: title.value,
+  description: description.value,
+  content: content.value,
+  path: pagePath.value,
+})
 const expectedUpdatedAt = ref(existing.value?.updatedAt ?? null)
 const saving = ref(false)
 const errorMessage = ref("")
 const leaveDialogOpen = ref(false)
 const duplicateDialogOpen = ref(false)
-const duplicatePath = ref("")
-const duplicateTitle = ref("")
-const duplicateError = ref("")
-const duplicating = ref(false)
 const activeTab = ref<"frontmatter" | "editor" | "preview">("editor")
 let resolveLeave: ((leave: boolean) => void) | null = null
 
-const isDirty = computed(() => title.value !== savedTitle.value || description.value !== savedDescription.value || content.value !== savedContent.value || pagePath.value !== savedPath.value)
+const isDirty = computed(() => title.value !== saved.value.title || description.value !== saved.value.description || content.value !== saved.value.content || pagePath.value !== saved.value.path)
 
 async function save(returnToPage = true) {
   saving.value = true
@@ -45,11 +42,13 @@ async function save(returnToPage = true) {
       method: "PUT",
       body: { path: pagePath.value, title: title.value, description: description.value, content: content.value, expectedUpdatedAt: expectedUpdatedAt.value },
     })
-    savedTitle.value = title.value
-    savedDescription.value = description.value
-    savedContent.value = content.value
+    saved.value = {
+      title: title.value,
+      description: description.value,
+      content: content.value,
+      path: savedPage.path,
+    }
     pagePath.value = savedPage.path
-    savedPath.value = savedPage.path
     expectedUpdatedAt.value = savedPage.updatedAt
     existing.value = savedPage
     clearNuxtData(`page:${path.value}`)
@@ -61,47 +60,6 @@ async function save(returnToPage = true) {
     errorMessage.value = "保存に失敗しました"
   } finally {
     saving.value = false
-  }
-}
-
-function openDuplicateDialog() {
-  duplicatePath.value = `${savedPath.value}-copy`
-  duplicateTitle.value = `${savedTitle.value}のコピー`
-  duplicateError.value = ""
-  duplicateDialogOpen.value = true
-}
-
-function closeDuplicateDialog() {
-  if (!duplicating.value)
-    duplicateDialogOpen.value = false
-}
-
-async function duplicate() {
-  const targetPath = normalizePagePath(duplicatePath.value)
-  const targetTitle = duplicateTitle.value.trim()
-  if (!isValidPagePath(targetPath)) {
-    duplicateError.value = "有効なページパスを入力してください"
-    return
-  }
-  if (!targetTitle) {
-    duplicateError.value = "タイトルを入力してください"
-    return
-  }
-
-  duplicating.value = true
-  duplicateError.value = ""
-  try {
-    const duplicated = await $fetch<PageDto>(`/api/pages/${savedPath.value}`, {
-      method: "POST",
-      body: { path: targetPath, title: targetTitle },
-    })
-    duplicateDialogOpen.value = false
-    await Promise.all([refreshNuxtData("sidebar"), refreshPageTree()])
-    await navigateTo(`/edit/${duplicated.path}`)
-  } catch {
-    duplicateError.value = "ページの複製に失敗しました。パスが重複していないか確認してください"
-  } finally {
-    duplicating.value = false
   }
 }
 
@@ -193,7 +151,7 @@ onBeforeUnmount(() => {
         <div class="mb-2 ml-auto flex items-center gap-2">
           <span v-if="isDirty" class="text-sm text-muted-foreground">未保存の変更があります</span>
           <span v-if="existing && isDirty" class="text-sm text-muted-foreground">保存後に複製できます</span>
-          <UiButton v-if="existing" variant="outline" class="bg-sidebar hover:bg-sidebar-accent" :disabled="saving || isDirty" @click="openDuplicateDialog">複製</UiButton>
+          <UiButton v-if="existing" variant="outline" class="bg-sidebar hover:bg-sidebar-accent" :disabled="saving || isDirty" @click="duplicateDialogOpen = true">複製</UiButton>
           <UiButton variant="outline" class="bg-sidebar hover:bg-sidebar-accent" :disabled="saving" @click="cancel">キャンセル</UiButton>
           <UiButton :disabled="saving" @click="save">保存</UiButton>
         </div>
@@ -254,28 +212,6 @@ onBeforeUnmount(() => {
       @confirm="handleLeave(true)"
       @cancel="handleLeave(false)"
     />
-    <UiDialog :open="duplicateDialogOpen" @update:open="(open) => { if (!open) closeDuplicateDialog() }">
-      <UiDialogContent :show-close-button="!duplicating">
-        <UiDialogHeader>
-          <UiDialogTitle>ページを複製</UiDialogTitle>
-          <UiDialogDescription>本文と説明をコピーして、新しいページを作成します。</UiDialogDescription>
-        </UiDialogHeader>
-        <div class="space-y-4">
-          <div class="space-y-1">
-            <label class="text-sm font-medium" for="duplicate-path">新しいパス</label>
-            <UiInput id="duplicate-path" v-model="duplicatePath" :disabled="duplicating" placeholder="build/farm-copy" />
-          </div>
-          <div class="space-y-1">
-            <label class="text-sm font-medium" for="duplicate-title">タイトル</label>
-            <UiInput id="duplicate-title" v-model="duplicateTitle" :disabled="duplicating" />
-          </div>
-          <p v-if="duplicateError" class="text-sm text-destructive">{{ duplicateError }}</p>
-        </div>
-        <UiDialogFooter>
-          <UiButton type="button" variant="outline" :disabled="duplicating" @click="closeDuplicateDialog">キャンセル</UiButton>
-          <UiButton type="button" :disabled="duplicating" @click="duplicate">{{ duplicating ? "複製中..." : "複製" }}</UiButton>
-        </UiDialogFooter>
-      </UiDialogContent>
-    </UiDialog>
+    <DuplicatePageDialog v-model:open="duplicateDialogOpen" :source-path="saved.path" :source-title="saved.title" />
   </div>
 </template>
