@@ -8,5 +8,3 @@ playwright-report
 e2e/.auth
 .env
 .git
-PLAN.md
-QUESTIONS.md
