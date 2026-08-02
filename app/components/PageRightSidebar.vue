@@ -2,7 +2,7 @@
 import { HistoryIcon } from "@lucide/vue"
 import type { TocEntry } from "~~/shared/types/api"
 
-defineProps<{
+const props = defineProps<{
   canEdit: boolean
   editTo: string
   toc: TocEntry[]
@@ -12,6 +12,22 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{ selectHeading: [id: string] }>()
+const tocSectionRef = ref<HTMLElement>()
+
+async function scrollActiveTocEntryIntoView() {
+  if (!props.activeHeadingId)
+    return
+  await nextTick()
+  const section = tocSectionRef.value
+  if (!section)
+    return
+
+  const link = [...section.querySelectorAll<HTMLAnchorElement>("a[data-toc-id]")]
+    .find(candidate => candidate.dataset.tocId === props.activeHeadingId)
+  link?.scrollIntoView({ block: "nearest" })
+}
+
+watch(() => props.activeHeadingId, scrollActiveTocEntryIntoView, { flush: "post", immediate: true })
 </script>
 
 <template>
@@ -21,10 +37,10 @@ const emit = defineEmits<{ selectHeading: [id: string] }>()
         <NuxtLink :to="editTo">編集</NuxtLink>
       </UiButton>
     </div>
-    <section v-if="toc.length" class="wiki-scrollbar max-h-[calc(100dvh-16rem)] overflow-y-auto border border-sidebar-border bg-sidebar p-4 transition-colors dark:bg-muted/30">
+    <section v-if="toc.length" ref="tocSectionRef" class="wiki-scrollbar max-h-[calc(100dvh-16rem)] overflow-y-auto border border-sidebar-border bg-sidebar p-4 transition-colors dark:bg-muted/30">
       <h2 class="mb-3 font-semibold">目次</h2>
       <nav>
-        <TocTree :entries="toc" @select="emit('selectHeading', $event)" />
+        <TocTree :entries="toc" :active-id="activeHeadingId" @select="emit('selectHeading', $event)" />
       </nav>
     </section>
     <section class="border border-sidebar-border bg-sidebar p-4 text-muted-foreground dark:bg-muted/30">

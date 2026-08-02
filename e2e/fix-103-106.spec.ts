@@ -68,3 +68,31 @@ test("draw.io links show the same link preview", async ({ page }) => {
   await expect(preview).toBeVisible()
   await expect(preview).toContainText("図表リンク先")
 })
+
+test("the TOC highlights the current heading and follows it", async ({ page }) => {
+  const path = `e2e-toc-scrollspy-${Date.now()}`
+  const sections = Array.from({ length: 30 }, (_, index) => `## セクション${index + 1}\n\n${"長い本文です。 ".repeat(20)}`)
+  await createPage(page, path, {
+    title: "TOCスクロール監視",
+    content: sections.join("\n\n"),
+  })
+
+  await page.setViewportSize({ width: 1280, height: 720 })
+  await page.goto(`/wiki/${path}`)
+  const toc = page.locator("aside section").first()
+  const firstEntry = page.getByRole("link", { name: "セクション1", exact: true })
+  await expect(firstEntry).toHaveAttribute("aria-current", "location")
+
+  const targetHeading = page.locator("article h2").nth(19)
+  await targetHeading.evaluate(element => element.scrollIntoView({ block: "start", behavior: "auto" }))
+  const targetEntry = page.getByRole("link", { name: "セクション20", exact: true })
+  await expect(targetEntry).toHaveAttribute("aria-current", "location")
+  await expect.poll(() => toc.evaluate(element => element.scrollTop)).toBeGreaterThan(0)
+
+  const tocBox = await toc.boundingBox()
+  const targetEntryBox = await targetEntry.boundingBox()
+  expect(tocBox).toBeTruthy()
+  expect(targetEntryBox).toBeTruthy()
+  expect(targetEntryBox!.y).toBeGreaterThanOrEqual(tocBox!.y)
+  expect(targetEntryBox!.y + targetEntryBox!.height).toBeLessThanOrEqual(tocBox!.y + tocBox!.height)
+})
