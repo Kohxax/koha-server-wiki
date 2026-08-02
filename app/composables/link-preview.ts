@@ -1,13 +1,55 @@
+import type { InjectionKey } from "vue"
+import {
+  calculateLinkPreviewPosition,
+  DEFAULT_PREVIEW_HEIGHT,
+  type LinkPreviewPosition,
+  type LinkPreviewRect,
+} from "~/lib/link-preview-position"
 import type { LinkPreviewDto } from "~~/shared/types/api"
 import { internalPagePathFromHref, isHttpsHref } from "~~/shared/utils/link-preview"
 
 const OPEN_DELAY_MS = 180
 const CLOSE_DELAY_MS = 120
-// Popover width (w-80) plus an 8px margin from the viewport edge.
-const PREVIEW_WIDTH = 336
+
+export interface LinkPreviewContext {
+  showLinkPreview: (source: Event | Element, getRect?: () => LinkPreviewRect) => void
+  hideLinkPreview: () => void
+}
+
+const linkPreviewKey: InjectionKey<LinkPreviewContext> = Symbol("link-preview")
+
+export function provideLinkPreview(context: LinkPreviewContext) {
+  provide(linkPreviewKey, context)
+}
+
+export function useLinkPreviewContext(): LinkPreviewContext | null {
+  return inject(linkPreviewKey, null)
+}
 
 function isPreviewableHref(href: string) {
   return internalPagePathFromHref(href) !== null || isHttpsHref(href)
+}
+
+function asElement(value: unknown): Element | null {
+  if (!value || typeof value !== "object")
+    return null
+
+  const candidate = value as { closest?: unknown, getAttribute?: unknown }
+  return typeof candidate.closest === "function" && typeof candidate.getAttribute === "function"
+    ? value as Element
+    : null
+}
+
+function linkFromSource(source: Event | Element): Element | null {
+  const target = asElement(source) ?? asElement((source as Event).target)
+  return target?.closest("a") ?? null
+}
+
+function hrefFromLink(link: Element): string | null {
+  return link.getAttribute("href")
+    || link.getAttribute("xlink:href")
+    || link.getAttributeNS("http://www.w3.org/1999/xlink", "href")
+    || null
 }
 
 /**
@@ -19,11 +61,14 @@ function isPreviewableHref(href: string) {
 export function useLinkPreview() {
   const preview = shallowRef<LinkPreviewDto>()
   const open = ref(false)
-  const position = ref({ left: 0, top: 0 })
+  const position = ref<LinkPreviewPosition>({ left: 0, top: 0, placement: "below" })
 
   const previewCache = new Map<string, LinkPreviewDto>()
   const pendingPreviewRequests = new Map<string, Promise<LinkPreviewDto>>()
   let hoveredHref = ""
+  let hoveredLink: Element | undefined
+  let hoveredRectGetter: (() => LinkPreviewRect) | undefined
+  let previewHeight = DEFAULT_PREVIEW_HEIGHT
   let openTimer: ReturnType<typeof setTimeout> | undefined
   let closeTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -46,24 +91,25 @@ export function useLinkPreview() {
     }
   }
 
-  function positionPreview(link: HTMLAnchorElement) {
-    const rect = link.getBoundingClientRect()
-    position.value = {
-      left: Math.max(8, Math.min(rect.left, window.innerWidth - PREVIEW_WIDTH)),
-      top: Math.min(rect.bottom + 8, window.innerHeight - 16),
-    }
+  function positionPreview(link: Element, getRect = hoveredRectGetter) {
+    const rect = getRect?.() ?? link.getBoundingClientRect()
+    position.value = calculateLinkPreviewPosition({
+      anchor: rect,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      previewHeight,
+    })
   }
 
-  function showLinkPreview(event: Event) {
-    const target = event.target
-    if (!(target instanceof Element))
-      return
-    const link = target.closest<HTMLAnchorElement>("a[href]")
-    const href = link?.getAttribute("href")
+  function showLinkPreview(source: Event | Element, getRect?: () => LinkPreviewRect) {
+    const link = linkFromSource(source)
+    const href = link && hrefFromLink(link)
     if (!link || !href || !isPreviewableHref(href))
       return
 
     clearTimeout(closeTimer)
+    hoveredLink = link
+    hoveredRectGetter = getRect
     positionPreview(link)
     if (open.value && hoveredHref === href)
       return
@@ -90,6 +136,9 @@ export function useLinkPreview() {
     closeTimer = setTimeout(() => {
       open.value = false
       preview.value = undefined
+      hoveredHref = ""
+      hoveredLink = undefined
+      hoveredRectGetter = undefined
     }, CLOSE_DELAY_MS)
   }
 
@@ -103,6 +152,26 @@ export function useLinkPreview() {
   onBeforeUnmount(() => {
     clearTimeout(openTimer)
     clearTimeout(closeTimer)
+    window.removeEventListener("resize", repositionPreview)
+    window.removeEventListener("scroll", repositionPreview, true)
+  })
+
+  function repositionPreview() {
+    if (hoveredLink && open.value)
+      positionPreview(hoveredLink)
+  }
+
+  function updatePreviewCardSize(height: number) {
+    if (!Number.isFinite(height) || height <= 0)
+      return
+    previewHeight = height
+    if (hoveredLink && open.value)
+      positionPreview(hoveredLink)
+  }
+
+  onMounted(() => {
+    window.addEventListener("resize", repositionPreview)
+    window.addEventListener("scroll", repositionPreview, true)
   })
 
   return {
@@ -112,5 +181,6 @@ export function useLinkPreview() {
     showLinkPreview,
     hideLinkPreview,
     hideLinkPreviewOnFocusLeave,
+    updatePreviewCardSize,
   }
 }

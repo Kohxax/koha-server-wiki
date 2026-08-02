@@ -2,6 +2,7 @@
 import { usePreferredReducedMotion } from "@vueuse/core"
 import ogImage from "~/assets/images/face.webp?url&no-inline"
 import { formatDateTime } from "~/lib/format-date"
+import { provideLinkPreview } from "~/composables/link-preview"
 import type { PageDetailDto } from "~~/shared/types/api"
 import { canEdit as hasEditRole } from "~~/shared/utils/permissions"
 import { wikiPageUrl } from "~~/shared/utils/wiki-url"
@@ -29,7 +30,9 @@ const {
   showLinkPreview,
   hideLinkPreview,
   hideLinkPreviewOnFocusLeave,
+  updatePreviewCardSize,
 } = useLinkPreview()
+provideLinkPreview({ showLinkPreview, hideLinkPreview })
 
 function scrollToHeading(id: string) {
   const target = document.getElementById(id)
@@ -90,7 +93,7 @@ useSeoMeta({
       <article data-image-viewer-group class="min-w-0 lg:col-start-1 lg:row-start-2" @mouseover="showLinkPreview" @mouseleave="hideLinkPreview" @focusin="showLinkPreview" @focusout="hideLinkPreviewOnFocusLeave">
         <MDCRenderer :body="body" :data="data" class="wiki-prose [&_img]:h-auto [&_img]:max-w-full" />
       </article>
-      <LinkPreviewCard :open="linkPreviewOpen" :preview="linkPreview" :position="linkPreviewPosition" />
+      <LinkPreviewCard :open="linkPreviewOpen" :preview="linkPreview" :position="linkPreviewPosition" @resize="updatePreviewCardSize" />
       <PageRightSidebar
         :can-edit="canEdit"
         :edit-to="`/edit/${path}`"

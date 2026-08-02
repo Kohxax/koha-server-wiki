@@ -10,7 +10,7 @@ test("shows an internal link preview with the fallback image", async ({ page }) 
   await createPage(page, sourcePath, { title: "リンク元ページ", content: `[リンク先](/wiki/${targetPath})` })
 
   await page.goto(`/wiki/${sourcePath}`)
-  await page.getByRole("link", { name: "リンク先" }).hover()
+  await page.getByRole("link", { name: "リンク先", exact: true }).hover()
 
   const preview = page.getByRole("tooltip")
   await expect(preview).toBeVisible()
