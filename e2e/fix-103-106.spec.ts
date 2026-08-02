@@ -69,6 +69,47 @@ test("draw.io links show the same link preview", async ({ page }) => {
   await expect(preview).toContainText("図表リンク先")
 })
 
+test("draw.io same-origin absolute links show the target page preview", async ({ page }) => {
+  const suffix = Date.now()
+  const targetPath = `e2e-diagram-absolute-preview-target-${suffix}`
+  const sourcePath = `e2e-diagram-absolute-preview-source-${suffix}`
+  const targetHref = `http://localhost:3000/wiki/${targetPath}`
+  const linkedSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="240" height="100"><a xlink:href="${targetHref}"><rect width="240" height="100" fill="#22c55e"/></a></svg>`
+  const media = await uploadSvg(page, `diagram-absolute-preview-${suffix}.svg`, linkedSvg, "diagram")
+
+  await createPage(page, targetPath, {
+    title: "絶対URLの図表リンク先",
+    description: "絶対URLから取得した説明です",
+    content: "図表から開くページです",
+  })
+  await createPage(page, sourcePath, {
+    title: "絶対URLの図表リンクプレビュー",
+    content: `::diagram{src="/uploads/${media.filename}" media-id="${media.id}"}\n::`,
+  })
+
+  await page.goto(`/wiki/${sourcePath}`)
+  const diagram = page.locator('object[aria-label="図表"]')
+  await expect(diagram).toBeVisible()
+  await expect.poll(() => diagram.evaluate((element: HTMLObjectElement) => {
+    const link = element.contentDocument?.querySelector("a")
+    return link?.getAttribute("xlink:href")
+  })).toBe(targetHref)
+
+  await diagram.evaluate((element: HTMLObjectElement) => {
+    const document = element.contentDocument
+    const link = document?.querySelector("a")
+    const MouseEvent = document?.defaultView?.MouseEvent
+    if (!link || !MouseEvent)
+      throw new Error("draw.io link is not ready")
+    link.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
+  })
+
+  const preview = page.getByRole("tooltip")
+  await expect(preview).toBeVisible()
+  await expect(preview).toContainText("絶対URLの図表リンク先")
+  await expect(preview).toContainText("絶対URLから取得した説明です")
+})
+
 test("the TOC highlights the current heading and follows it", async ({ page }) => {
   const path = `e2e-toc-scrollspy-${Date.now()}`
   const sections = Array.from({ length: 30 }, (_, index) => `## セクション${index + 1}\n\n${"長い本文です。 ".repeat(20)}`)

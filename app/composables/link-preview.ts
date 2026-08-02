@@ -26,8 +26,8 @@ export function useLinkPreviewContext(): LinkPreviewContext | null {
   return inject(linkPreviewKey, null)
 }
 
-function isPreviewableHref(href: string) {
-  return internalPagePathFromHref(href) !== null || isHttpsHref(href)
+function isPreviewableHref(href: string, siteOrigin: string) {
+  return internalPagePathFromHref(href, siteOrigin) !== null || isHttpsHref(href)
 }
 
 function asElement(value: unknown): Element | null {
@@ -59,6 +59,7 @@ function hrefFromLink(link: Element): string | null {
  * lifetime of the component so re-hovering a link doesn't refetch.
  */
 export function useLinkPreview() {
+  const siteOrigin = useSiteOrigin()
   const preview = shallowRef<LinkPreviewDto>()
   const open = ref(false)
   const position = ref<LinkPreviewPosition>({ left: 0, top: 0, placement: "below" })
@@ -104,7 +105,7 @@ export function useLinkPreview() {
   function showLinkPreview(source: Event | Element, getRect?: () => LinkPreviewRect) {
     const link = linkFromSource(source)
     const href = link && hrefFromLink(link)
-    if (!link || !href || !isPreviewableHref(href))
+    if (!link || !href || !isPreviewableHref(href, siteOrigin.value))
       return
 
     clearTimeout(closeTimer)

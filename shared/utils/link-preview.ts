@@ -1,10 +1,13 @@
 import { isValidPagePath, normalizePagePath } from "./page-path"
 
-/** Returns a wiki page path when a relative href points at an internal page. */
-export function internalPagePathFromHref(href: string): string | null {
+const RELATIVE_HREF_ORIGIN = "https://wiki.invalid"
+
+/** Returns a wiki page path when href points at an internal page. */
+export function internalPagePathFromHref(href: string, siteOrigin?: string): string | null {
   try {
-    const url = new URL(href, "https://wiki.invalid")
-    if (url.origin !== "https://wiki.invalid")
+    const expectedOrigin = siteOrigin ? new URL(siteOrigin).origin : RELATIVE_HREF_ORIGIN
+    const url = new URL(href, `${expectedOrigin}/`)
+    if (url.origin !== expectedOrigin)
       return null
 
     if (url.pathname === "/")

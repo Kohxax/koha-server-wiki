@@ -13,7 +13,7 @@ export default defineEventHandler(async (event): Promise<LinkPreviewDto> => {
   if (typeof href !== "string" || !href.trim())
     throw createError({ statusCode: 400, statusMessage: "A link is required" })
 
-  const internalPath = internalPagePathFromHref(href)
+  const internalPath = internalPagePathFromHref(href, resolveSiteOrigin(event))
   if (internalPath) {
     const [page] = await useDb().select({
       title: pages.title,
