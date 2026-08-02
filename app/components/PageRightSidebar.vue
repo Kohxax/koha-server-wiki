@@ -6,6 +6,7 @@ defineProps<{
   canEdit: boolean
   editTo: string
   toc: TocEntry[]
+  activeHeadingId: string | null
   updatedByUsername: string | null
   updatedAt: string
 }>()

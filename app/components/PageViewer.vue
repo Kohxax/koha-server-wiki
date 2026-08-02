@@ -34,10 +34,75 @@ const {
 } = useLinkPreview()
 provideLinkPreview({ showLinkPreview, hideLinkPreview })
 
+const articleRef = ref<HTMLElement>()
+const activeHeadingId = ref<string | null>(null)
+const HEADING_SELECTOR = "h2[id], h3[id], h4[id], h5[id], h6[id]"
+let activeHeadingFrame: number | undefined
+let articleMutationObserver: MutationObserver | undefined
+
+function updateActiveHeading() {
+  const headings = [...(articleRef.value?.querySelectorAll<HTMLElement>(HEADING_SELECTOR) ?? [])]
+  if (!headings.length) {
+    activeHeadingId.value = null
+    return
+  }
+
+  const activationLine = 80
+  let active = headings[0]!
+  for (const heading of headings) {
+    if (heading.getBoundingClientRect().top <= activationLine)
+      active = heading
+    else
+      break
+  }
+
+  if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2)
+    active = headings.at(-1)!
+
+  activeHeadingId.value = active.id
+}
+
+function scheduleActiveHeadingUpdate() {
+  if (activeHeadingFrame !== undefined)
+    return
+  activeHeadingFrame = window.requestAnimationFrame(() => {
+    activeHeadingFrame = undefined
+    updateActiveHeading()
+  })
+}
+
+function observeArticleHeadings() {
+  articleMutationObserver?.disconnect()
+  articleMutationObserver = undefined
+  if (!articleRef.value)
+    return
+
+  articleMutationObserver = new MutationObserver(scheduleActiveHeadingUpdate)
+  articleMutationObserver.observe(articleRef.value, { childList: true, subtree: true })
+  scheduleActiveHeadingUpdate()
+}
+
+onMounted(() => {
+  window.addEventListener("scroll", scheduleActiveHeadingUpdate, { passive: true })
+  window.addEventListener("resize", scheduleActiveHeadingUpdate)
+  observeArticleHeadings()
+})
+
+watch(articleRef, observeArticleHeadings, { flush: "post" })
+
+onBeforeUnmount(() => {
+  if (activeHeadingFrame !== undefined)
+    window.cancelAnimationFrame(activeHeadingFrame)
+  articleMutationObserver?.disconnect()
+  window.removeEventListener("scroll", scheduleActiveHeadingUpdate)
+  window.removeEventListener("resize", scheduleActiveHeadingUpdate)
+})
+
 function scrollToHeading(id: string) {
   const target = document.getElementById(id)
   if (!target)
     return
+  activeHeadingId.value = id
   target.scrollIntoView({ behavior: reducedMotion.value === "reduce" ? "auto" : "smooth", block: "start" })
   window.history.replaceState(null, "", `#${encodeURIComponent(id)}`)
 }
@@ -90,7 +155,7 @@ useSeoMeta({
         </div>
         <p v-if="page.description" class="mt-2 text-sm leading-6 text-muted-foreground">{{ page.description }}</p>
       </div>
-      <article data-image-viewer-group class="min-w-0 lg:col-start-1 lg:row-start-2" @mouseover="showLinkPreview" @mouseleave="hideLinkPreview" @focusin="showLinkPreview" @focusout="hideLinkPreviewOnFocusLeave">
+      <article ref="articleRef" data-image-viewer-group class="min-w-0 lg:col-start-1 lg:row-start-2" @mouseover="showLinkPreview" @mouseleave="hideLinkPreview" @focusin="showLinkPreview" @focusout="hideLinkPreviewOnFocusLeave">
         <MDCRenderer :body="body" :data="data" class="wiki-prose [&_img]:h-auto [&_img]:max-w-full" />
       </article>
       <LinkPreviewCard :open="linkPreviewOpen" :preview="linkPreview" :position="linkPreviewPosition" @resize="updatePreviewCardSize" />
@@ -98,6 +163,7 @@ useSeoMeta({
         :can-edit="canEdit"
         :edit-to="`/edit/${path}`"
         :toc="toc?.links ?? []"
+        :active-heading-id="activeHeadingId"
         :updated-by-username="page.updatedByUsername"
         :updated-at="updatedAt"
         @select-heading="scrollToHeading"
