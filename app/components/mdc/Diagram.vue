@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { PencilIcon } from "@lucide/vue"
+import { useLinkPreviewContext } from "~/composables/link-preview"
+import type { LinkPreviewRect } from "~/lib/link-preview-position"
 import { canEdit as hasEditRole } from "~~/shared/utils/permissions"
 
 const props = withDefaults(defineProps<{
@@ -23,6 +25,7 @@ const loading = ref(false)
 const errorMessage = ref("")
 const { versionedSrc, refreshVersion } = useDiagramMediaVersions()
 const imageSrc = computed(() => versionedSrc(props.src))
+const linkPreview = useLinkPreviewContext()
 
 async function editDiagram() {
   if (!Number.isInteger(mediaId.value) || mediaId.value <= 0) {
@@ -47,9 +50,89 @@ function handleSaved() {
 }
 
 const objectRef = ref<HTMLObjectElement>()
+let linkedDocument: Document | undefined
+
+function asElement(value: EventTarget | null): Element | null {
+  if (!value || typeof value !== "object")
+    return null
+
+  const candidate = value as { closest?: unknown }
+  return typeof candidate.closest === "function" ? value as Element : null
+}
+
+function linkFromTarget(target: EventTarget | null): Element | null {
+  return asElement(target)?.closest("a") ?? null
+}
+
+function isWithinLink(target: EventTarget | null, link: Element): boolean {
+  return linkFromTarget(target) === link
+}
+
+function getDiagramLinkRect(link: Element): LinkPreviewRect {
+  const linkRect = link.getBoundingClientRect()
+  const objectRect = objectRef.value?.getBoundingClientRect()
+  const documentElement = link.ownerDocument.documentElement
+  if (!objectRect || !documentElement.clientWidth || !documentElement.clientHeight)
+    return linkRect
+
+  const scaleX = objectRect.width / documentElement.clientWidth
+  const scaleY = objectRect.height / documentElement.clientHeight
+  return {
+    left: objectRect.left + linkRect.left * scaleX,
+    top: objectRect.top + linkRect.top * scaleY,
+    right: objectRect.left + linkRect.right * scaleX,
+    bottom: objectRect.top + linkRect.bottom * scaleY,
+  }
+}
+
+function handleDiagramMouseOver(event: Event) {
+  const link = linkFromTarget(event.target)
+  if (link)
+    linkPreview?.showLinkPreview(link, () => getDiagramLinkRect(link))
+}
+
+function handleDiagramMouseOut(event: MouseEvent) {
+  const link = linkFromTarget(event.target)
+  if (!link || isWithinLink(event.relatedTarget, link))
+    return
+  linkPreview?.hideLinkPreview()
+}
+
+function handleDiagramFocusIn(event: Event) {
+  const link = linkFromTarget(event.target)
+  if (link)
+    linkPreview?.showLinkPreview(link, () => getDiagramLinkRect(link))
+}
+
+function handleDiagramFocusOut(event: FocusEvent) {
+  const link = linkFromTarget(event.target)
+  if (!link || isWithinLink(event.relatedTarget, link))
+    return
+  linkPreview?.hideLinkPreview()
+}
+
+function removeDiagramLinkListeners() {
+  if (!linkedDocument)
+    return
+  linkedDocument.removeEventListener("mouseover", handleDiagramMouseOver)
+  linkedDocument.removeEventListener("mouseout", handleDiagramMouseOut)
+  linkedDocument.removeEventListener("focusin", handleDiagramFocusIn)
+  linkedDocument.removeEventListener("focusout", handleDiagramFocusOut)
+  linkedDocument = undefined
+}
 
 function prepareDiagramLinks() {
-  objectRef.value?.contentDocument?.querySelectorAll("a").forEach((link) => {
+  const document = objectRef.value?.contentDocument
+  if (!document)
+    return
+
+  removeDiagramLinkListeners()
+  linkedDocument = document
+  document.addEventListener("mouseover", handleDiagramMouseOver)
+  document.addEventListener("mouseout", handleDiagramMouseOut)
+  document.addEventListener("focusin", handleDiagramFocusIn)
+  document.addEventListener("focusout", handleDiagramFocusOut)
+  document.querySelectorAll("a").forEach((link) => {
     link.setAttribute("target", "_blank")
     link.setAttribute("rel", "noopener noreferrer")
   })
@@ -58,6 +141,10 @@ function prepareDiagramLinks() {
 // ハイドレーション前にloadイベントが発火済みの場合に備えたフォールバック
 onMounted(() => {
   prepareDiagramLinks()
+})
+
+onBeforeUnmount(() => {
+  removeDiagramLinkListeners()
 })
 </script>
 
